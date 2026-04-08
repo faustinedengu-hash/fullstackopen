@@ -5,6 +5,7 @@ const Course = ({ course }) => {
     <div>
       <Header course={course.name} />
       <Content parts={course.parts} />
+      <Total parts={course.parts} />
     </div>
   )
 }
@@ -22,6 +23,13 @@ const Content = ({ parts }) => {
         <Part key={part.id} part={part} />
       )}
     </div>
+  )
+}
+const Total = ({ parts }) => {
+  return (
+    <p>
+      <b>total of {parts[0].exercises + parts [1].exercises+parts[2].exercises} exercises</b>
+    </p>
   )
 }
 const App = () => {
