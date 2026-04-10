@@ -24,6 +24,11 @@
       "name": "Faustine",
       "number": "0783099504",
       "id": "DrPAxDXdpGk"
+    },
+    {
+      "name": "tafadzwa",
+      "number": "0782454007",
+      "id": "jN45dmIkLtk"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
