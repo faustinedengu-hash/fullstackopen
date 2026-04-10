@@ -69,17 +69,29 @@ const App = () => {
   const addName = (event) => {
     event.preventDefault()
 
-    const isDuplicate = persons.some(person => person.name === newName)
+    const existingPerson = persons.find(person => person.name === newName)
 
-    if (isDuplicate) {
-      alert(`${newName} is already added to phonebook`)
+    if (existingPerson) {
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+        // Create a copy of the person object but with the new number
+        const changedPerson = { ...existingPerson, number: newNumber }
+
+        personService
+          .update(existingPerson.id, changedPerson)
+          .then(returnedPerson => {
+            // If the ID matches, show the new returnedPerson. Otherwise, keep the old person.
+            setPersons(persons.map(person => person.id !== existingPerson.id ? person : returnedPerson))
+            setNewName('')
+            setNewNumber('')
+          })
+      }
     } else {
       const nameObject = { 
         name: newName, 
         number: newNumber 
       }
 
-     personService
+      personService
         .create(nameObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
