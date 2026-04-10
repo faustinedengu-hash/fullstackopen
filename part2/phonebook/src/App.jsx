@@ -37,13 +37,14 @@ const Persons = ({ personsToShow, deletePerson }) => {
     </div>
   )
 }
-const Notification = ({ message }) => {
+
+const Notification = ({ message, type }) => {
   if (message === null) {
     return null
   }
 
   return (
-    <div className="success">
+    <div className={type}> {/* This makes the class either "success" or "error" */}
       {message}
     </div>
   )
@@ -54,13 +55,12 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [infoMessage, setInfoMessage] = useState(null)
+  const [messageType, setMessageType] = useState('success') // can be 'success' or 'error'
 
   useEffect(() => {
-    console.log('effect is running')
     personService
       .getAll()
       .then(initialPersons => {
-        console.log('promise fulfilled')
         setPersons(initialPersons)
       })
   }, [])
@@ -77,7 +77,7 @@ const App = () => {
     setNewNumber(event.target.value)
   }
 
- const addName = (event) => {
+  const addName = (event) => {
     event.preventDefault()
     const existingPerson = persons.find(person => person.name === newName)
 
@@ -89,33 +89,39 @@ const App = () => {
           .update(existingPerson.id, changedPerson)
           .then(returnedPerson => {
             setPersons(persons.map(p => p.id !== existingPerson.id ? p : returnedPerson))
-            
-            // Notification for Update
+            setMessageType('success')
             setInfoMessage(`Updated ${returnedPerson.name}'s number`)
             setTimeout(() => setInfoMessage(null), 5000)
-            
             setNewName('')
             setNewNumber('')
           })
+          .catch(error => {
+            setMessageType('error')
+            setInfoMessage(`Information of ${newName} has already been removed from server`)
+            setPersons(persons.filter(p => p.id !== existingPerson.id))
+            setTimeout(() => setInfoMessage(null), 5000)
+          })
       }
     } else {
-      const nameObject = { name: newName, number: newNumber }
+      const nameObject = { 
+        name: newName, 
+        number: newNumber 
+      }
 
       personService
         .create(nameObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
-          
-          // Notification for New Addition
+          setMessageType('success')
           setInfoMessage(`Added ${returnedPerson.name}`)
           setTimeout(() => setInfoMessage(null), 5000)
-
           setNewName('')
           setNewNumber('')
         })
     }
   }
-const deletePerson = (id, name) => {
+
+  const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
       personService
         .remove(id)
@@ -134,7 +140,8 @@ const deletePerson = (id, name) => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={infoMessage} />
+      <Notification message={infoMessage} type={messageType} />
+      
       <Filter searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
 
       <h3>Add a new</h3>
@@ -153,3 +160,4 @@ const deletePerson = (id, name) => {
 }
 
 export default App
+
