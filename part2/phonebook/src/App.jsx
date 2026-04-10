@@ -1,5 +1,5 @@
+import personService from './services/persons'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 
 const Filter = ({ searchQuery, handleSearchChange }) => {
   return (
@@ -25,11 +25,14 @@ const PersonForm = ({ addName, newName, handleNameChange, newNumber, handleNumbe
   )
 }
 
-const Persons = ({ personsToShow }) => {
+const Persons = ({ personsToShow, deletePerson }) => {
   return (
     <div>
       {personsToShow.map(person => 
-        <p key={person.name}>{person.name} {person.number}</p>
+        <p key={person.id || person.name}>
+          {person.name} {person.number} 
+          <button onClick={() => deletePerson(person.id, person.name)}>delete</button>
+        </p>
       )}
     </div>
   )
@@ -41,14 +44,13 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // This is the "Delivery Truck" that fetches your data from db.json
   useEffect(() => {
     console.log('effect is running')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
+    personService
+      .getAll()
+      .then(initialPersons => {
         console.log('promise fulfilled')
-        setPersons(response.data)
+        setPersons(initialPersons)
       })
   }, [])
 
@@ -77,12 +79,21 @@ const App = () => {
         number: newNumber 
       }
 
-      axios
-        .post('http://localhost:3001/persons', nameObject)
-        .then(response => {
-          setPersons(persons.concat(response.data))
+     personService
+        .create(nameObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
+        })
+    }
+  }
+const deletePerson = (id, name) => {
+    if (window.confirm(`Delete ${name}?`)) {
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
         })
     }
   }
@@ -108,7 +119,7 @@ const App = () => {
       />
 
       <h3>Numbers</h3>
-      <Persons personsToShow={personsToShow} />
+      <Persons personsToShow={personsToShow} deletePerson={deletePerson} />
     </div>
   )
 }
