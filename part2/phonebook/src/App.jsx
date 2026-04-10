@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+
 const Filter = ({ searchQuery, handleSearchChange }) => {
   return (
     <div>
@@ -6,6 +8,7 @@ const Filter = ({ searchQuery, handleSearchChange }) => {
     </div>
   )
 }
+
 const PersonForm = ({ addName, newName, handleNameChange, newNumber, handleNumberChange }) => {
   return (
     <form onSubmit={addName}>
@@ -21,6 +24,7 @@ const PersonForm = ({ addName, newName, handleNameChange, newNumber, handleNumbe
     </form>
   )
 }
+
 const Persons = ({ personsToShow }) => {
   return (
     <div>
@@ -30,16 +34,23 @@ const Persons = ({ personsToShow }) => {
     </div>
   )
 }
+
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456' },
-    { name: 'Ada Lovelace', number: '39-44-5323523' },
-    { name: 'Dan Abramov', number: '12-43-234345' },
-    { name: 'Mary Poppendieck', number: '39-23-6423122' }
-  ]) 
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // This is the "Delivery Truck" that fetches your data from db.json
+  useEffect(() => {
+    console.log('effect is running')
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        console.log('promise fulfilled')
+        setPersons(response.data)
+      })
+  }, [])
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value)
@@ -77,7 +88,7 @@ const App = () => {
     : persons.filter(person => 
         person.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -96,4 +107,6 @@ const App = () => {
       <Persons personsToShow={personsToShow} />
     </div>
   )
+}
+
 export default App
