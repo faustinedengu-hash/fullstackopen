@@ -8,7 +8,7 @@ const cors = require('cors')
 app.use(cors())
 app.use(express.json())
 app.use(express.static('dist'))
-morgan.token('body', (req, res) => {
+morgan.token('body', (req) => {
   return JSON.stringify(req.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
@@ -45,7 +45,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(result => {
+    .then(()=> {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -60,10 +60,10 @@ app.put('/api/persons/:id', (request, response, next) => {
   }
 
   Person.findByIdAndUpdate(
-  request.params.id, 
-  person, 
-  { new: true, runValidators: true, context: 'query' }
-)
+    request.params.id, 
+    person, 
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
@@ -87,7 +87,7 @@ app.post('/api/persons', (request, response, next) => { // <--- Add 'next' here!
       response.json(savedPerson)
     })
     .catch(error => next(error))
-  })
+})
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
