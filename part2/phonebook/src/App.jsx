@@ -97,6 +97,7 @@ const App = () => {
           })
           .catch(error => {
             setMessageType('error')
+
             setInfoMessage(`Information of ${newName} has already been removed from server`)
             setPersons(persons.filter(p => p.id !== existingPerson.id))
             setTimeout(() => setInfoMessage(null), 5000)
@@ -112,15 +113,25 @@ const App = () => {
         .create(nameObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
           setMessageType('success')
           setInfoMessage(`Added ${returnedPerson.name}`)
           setTimeout(() => setInfoMessage(null), 5000)
-          setNewName('')
-          setNewNumber('')
+        })
+       .catch(error => {
+          // 1. Let's print the exact error to the console so we can investigate!
+          console.log("Error from backend:", error.response?.data)
+          
+          setMessageType('error')
+          
+          // 2. We use a fallback message just in case the backend error string is missing
+          setInfoMessage(error.response?.data?.error || 'An error occurred while adding the person') 
+          
+          setTimeout(() => setInfoMessage(null), 5000)
         })
     }
   }
-
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
       personService
