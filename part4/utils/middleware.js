@@ -13,17 +13,25 @@ const unknownEndpoint = (request, response) => {
 }
 
 const errorHandler = (error, request, response, next) => {
-  logger.error(error.message)
+  // These logs are your best friends right now. 
+  // If the test still fails, look at your terminal to see what these print!
+  console.error('ERROR NAME:', error.name)
+  console.error('ERROR MESSAGE:', error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
+  } else if (error.name === 'MongoServerError' && error.code === 11000) {
+    // Catching by the code 11000 is the safest way to find duplicates
+    return response.status(400).json({ error: 'expected `username` to be unique' })
+  } else if (error.message.includes('E11000 duplicate key error')) {
+    // Fallback check just in case the error name is different
+    return response.status(400).json({ error: 'expected `username` to be unique' })
   }
 
   next(error)
 }
-
 module.exports = {
   requestLogger,
   unknownEndpoint,
