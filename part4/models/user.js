@@ -1,13 +1,18 @@
 const mongoose = require('mongoose')
-
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true // Helsinki requirement: No duplicate usernames!
+    unique: true
   },
   name: String,
   passwordHash: String,
+  blogs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Blog' // This tells Mongoose to look in the Blog collection
+    }
+  ]
 })
 
 userSchema.set('toJSON', {
