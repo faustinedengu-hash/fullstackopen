@@ -63,6 +63,32 @@ test('if likes property is missing, it defaults to 0', async () => {
   // Verify that the response has a likes property, and it equals 0
   assert.strictEqual(response.body.likes, 0)
 })
+test('blog without title is not added', async () => {
+  const newBlog = {
+    author: 'No Title Author',
+    url: 'https://notitle.com',
+    likes: 5
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400) // We expect a "Bad Request" error
+})
+
+test('blog without url is not added', async () => {
+  const newBlog = {
+    title: 'A blog with no URL',
+    author: 'No URL Author',
+    likes: 5
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400) // We expect a "Bad Request" error here too
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
