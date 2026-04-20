@@ -1,16 +1,16 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 
+// GET all blogs
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({})
   response.json(blogs)
 })
 
-// --- REPLACE YOUR OLD POST ROUTE WITH THIS ---
+// POST a new blog
 blogsRouter.post('/', async (request, response) => {
   const body = request.body
 
-  // This is the "Gatekeeper" that checks for Title and URL
   if (!body.title || !body.url) {
     return response.status(400).end()
   }
@@ -19,11 +19,29 @@ blogsRouter.post('/', async (request, response) => {
     title: body.title,
     author: body.author,
     url: body.url,
-    likes: body.likes // Mongoose will handle the default 0 if this is missing
+    likes: body.likes || 0 
   })
 
   const savedBlog = await blog.save()
   response.status(201).json(savedBlog)
+})
+
+// DELETE a blog
+blogsRouter.delete('/:id', async (request, response) => {
+  await Blog.findByIdAndDelete(request.params.id)
+  response.status(204).end()
+})
+
+// UPDATE a blog (Exercise 4.14)
+blogsRouter.put('/:id', async (request, response) => {
+  const body = request.body
+
+  const blog = {
+    likes: body.likes,
+  }
+
+  const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
+  response.json(updatedBlog)
 })
 
 module.exports = blogsRouter

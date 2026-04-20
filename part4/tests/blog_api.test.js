@@ -1,10 +1,30 @@
-const { test, after } = require('node:test')
+const { test, after, beforeEach } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
+const Blog = require('../models/blog') // <--- Add this line!
 
 const api = supertest(app)
+const initialBlogs = [
+  {
+    title: 'HTML is easy',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://example.com',
+    likes: 5
+  },
+  {
+    title: 'Browser can execute only JavaScript',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://example.com',
+    likes: 10
+  }
+]
+
+beforeEach(async () => {
+  await Blog.deleteMany({})
+  await Blog.insertMany(initialBlogs)
+})
 
 test('blogs are returned as json', async () => {
   await api
@@ -87,6 +107,39 @@ test('blog without url is not added', async () => {
     .post('/api/blogs')
     .send(newBlog)
     .expect(400) // We expect a "Bad Request" error here too
+})
+test('a blog can be deleted', async () => {
+  const blogsAtStart = await api.get('/api/blogs')
+  const blogToDelete = blogsAtStart.body[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(204)
+
+  const blogsAtEnd = await api.get('/api/blogs')
+  
+  assert.strictEqual(blogsAtEnd.body.length, blogsAtStart.body.length - 1)
+
+  const contents = blogsAtEnd.body.map(r => r.title)
+  assert(!contents.includes(blogToDelete.title))
+})
+test('a blog can be updated', async () => {
+  const blogsAtStart = await api.get('/api/blogs')
+  const blogToUpdate = blogsAtStart.body[0]
+
+  const updatedBlogData = {
+    likes: blogToUpdate.likes + 1
+  }
+
+  await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedBlogData)
+    .expect(200)
+
+  const blogsAtEnd = await api.get('/api/blogs')
+  const updatedBlog = blogsAtEnd.body.find(b => b.id === blogToUpdate.id)
+
+  assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 1)
 })
 
 after(async () => {
