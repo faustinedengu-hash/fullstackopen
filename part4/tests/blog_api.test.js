@@ -44,6 +44,25 @@ test('a valid blog can be added', async () => {
   const titles = response.body.map(r => r.title)
   assert(titles.includes('Async/Await simplifies making async calls'))
 })
+
+test('if likes property is missing, it defaults to 0', async () => {
+  const blogWithoutLikes = {
+    title: 'This blog has no likes property',
+    author: 'Lonely Writer',
+    url: 'https://nolikes.com'
+    // Notice: no 'likes' property here!
+  }
+
+  // Send the POST request
+  const response = await api
+    .post('/api/blogs')
+    .send(blogWithoutLikes)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  // Verify that the response has a likes property, and it equals 0
+  assert.strictEqual(response.body.likes, 0)
+})
 after(async () => {
   await mongoose.connection.close()
 })
