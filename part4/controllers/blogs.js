@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken') 
+
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
@@ -15,15 +15,12 @@ blogsRouter.post('/', async (request, response, next) => {
   try {
     const body = request.body
     
-    // 1. Get the token from the request
-const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    // 2. Check if the token is valid and has an ID
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' })
-    }
+    // Look how simple this is now! The middleware does all the work.
+    const user = request.user 
     
-    // 3. Find the specific user who owns this token!
-    const user = await User.findById(decodedToken.id)
+    if (!user) {
+      return response.status(401).json({ error: 'token missing or invalid' })
+    }
 
     const blog = new Blog({
       title: body.title,
@@ -45,21 +42,18 @@ const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
 blogsRouter.delete('/:id', async (request, response, next) => {
   try {
-    // 1. Verify the token first
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' })
+    const user = request.user 
+
+    if (!user) {
+      return response.status(401).json({ error: 'token missing or invalid' })
     }
 
-    // 2. Find the blog in the database
     const blog = await Blog.findById(request.params.id)
     if (!blog) {
       return response.status(404).json({ error: 'blog not found' })
     }
 
-    // 3. Check if the person trying to delete it is the creator
-    // We have to use .toString() because the IDs are objects in MongoDB!
-    if (blog.user.toString() === decodedToken.id.toString()) {
+    if (blog.user.toString() === user._id.toString()) {
       await Blog.findByIdAndDelete(request.params.id)
       response.status(204).end()
     } else {
