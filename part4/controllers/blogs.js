@@ -45,8 +45,26 @@ const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
 blogsRouter.delete('/:id', async (request, response, next) => {
   try {
-    await Blog.findByIdAndDelete(request.params.id)
-    response.status(204).end()
+    // 1. Verify the token first
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+
+    // 2. Find the blog in the database
+    const blog = await Blog.findById(request.params.id)
+    if (!blog) {
+      return response.status(404).json({ error: 'blog not found' })
+    }
+
+    // 3. Check if the person trying to delete it is the creator
+    // We have to use .toString() because the IDs are objects in MongoDB!
+    if (blog.user.toString() === decodedToken.id.toString()) {
+      await Blog.findByIdAndDelete(request.params.id)
+      response.status(204).end()
+    } else {
+      return response.status(401).json({ error: 'only the creator can delete this blog' })
+    }
   } catch (exception) {
     next(exception)
   }
