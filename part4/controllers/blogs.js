@@ -1,6 +1,7 @@
+const jwt = require('jsonwebtoken') 
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user') // REQUIRED FOR EXERCISE 4.17
+const User = require('../models/user')
 
 // EXERCISE 4.17: Populating the user data
 blogsRouter.get('/', async (request, response) => {
@@ -13,26 +14,29 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', async (request, response, next) => {
   try {
     const body = request.body
-
-    // EXERCISE 4.17: Find a user to assign to the blog
-    const user = await User.findOne()
+    
+    // 1. Get the token from the request
+    const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+    
+    // 2. Check if the token is valid and has an ID
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+    
+    // 3. Find the specific user who owns this token!
+    const user = await User.findById(decodedToken.id)
 
     const blog = new Blog({
       title: body.title,
       author: body.author,
       url: body.url,
       likes: body.likes || 0,
-      // Safety check: if user exists, use their ID, else null (prevents test crashes)
-      user: user ? user.id : null 
+      user: user._id
     })
 
     const savedBlog = await blog.save()
-
-    // EXERCISE 4.17: Save the blog ID to the user's array
-    if (user) {
-      user.blogs = user.blogs.concat(savedBlog._id)
-      await user.save()
-    }
+    user.blogs = user.blogs.concat(savedBlog._id)
+    await user.save()
 
     response.status(201).json(savedBlog)
   } catch (exception) {
@@ -63,5 +67,12 @@ blogsRouter.put('/:id', async (request, response, next) => {
     next(exception)
   }
 })
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
 
 module.exports = blogsRouter

@@ -1,18 +1,10 @@
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2OWU2MDJkNWViYmZkMmJmYjRlYTZmMDYiLCJpYXQiOjE3NzY3NzYwNjF9.93SY21Xir-z8RHgwA2nQlP1DDx_ssNViFhAA8V-boss
 
 {
-  "title": "My First Blog Post",
-  "author": "Faustine",
-  "url": "https://fullstackopen.com",
-  "likes": 100
-}
-###
-POST http://localhost:3003/api/users
-Content-Type: application/json
-
-{
-  "username": "mluukkai",
-  "name": "Matti Luukkainen",
-  "password": "salainen-salasana"
+  "title": "A blog with a VIP Token!",
+  "author": "Matti",
+  "url": "https://secured.com",
+  "likes": 50
 }
