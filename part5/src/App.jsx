@@ -6,6 +6,15 @@ const App = () => {
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(null)
 
+  // NEW: 1. Put the useEffect right here, immediately after your state variables
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+    }
+  }, [])
+
   const handleLogin = async (event) => {
     event.preventDefault()
     
@@ -13,6 +22,12 @@ const App = () => {
       const user = await loginService.login({
         username, password,
       })
+      
+      // NEW: 2. Save the user to Local Storage right before you set the state
+      window.localStorage.setItem(
+        'loggedBlogappUser', JSON.stringify(user)
+      ) 
+      
       setUser(user)
       setUsername('')
       setPassword('')
@@ -21,7 +36,12 @@ const App = () => {
     }
   }
 
-  // The Bouncer: If no user is logged in, show the login form
+  // NEW: 3. Create the handleLogout function right below handleLogin
+  const handleLogout = () => {
+    window.localStorage.removeItem('loggedBlogappUser')
+    setUser(null)
+  }
+
   if (user === null) {
     return (
       <div>
@@ -51,11 +71,13 @@ const App = () => {
     )
   }
 
-  // If a user IS logged in, show a welcome message
   return (
     <div>
       <h2>Blogs</h2>
-      <p>{user.name} logged in</p>
+      {/* NEW: 4. Add the button right next to the user's name */}
+      <p>
+        {user.name} logged in <button onClick={handleLogout}>logout</button>
+      </p>
     </div>
   )
 }
