@@ -1,3 +1,4 @@
+console.log('Testing ENV:', process.env.MONGODB_URI)
 const app = require('./app') // The Express app
 const config = require('./utils/config')
 const logger = require('./utils/logger')
