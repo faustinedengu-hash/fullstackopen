@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog' // The course expects this component
 import blogService from './services/blogs'
 import loginService from './services/login'
+import Notification from './components/Notification' 
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -12,6 +13,8 @@ const App = () => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState(null)
+  const [notificationType, setNotificationType] = useState('success')
 
   // Exercise 5.1 requirement: Fetch blogs from the server
   useEffect(() => {
@@ -40,10 +43,13 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      console.log('Wrong credentials')
+      setNotificationType('error')
+      setNotificationMessage('wrong username or password')
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
     }
   }
-
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
@@ -55,11 +61,21 @@ const App = () => {
     try {
       const newBlog = await blogService.create({ title, author, url })
       setBlogs(blogs.concat(newBlog))
+      setNotificationType('success')
+      setNotificationMessage(`a new blog ${title} by ${author} added`)
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
+
       setTitle('')
       setAuthor('')
       setUrl('')
     } catch (exception) {
-      console.log('Error creating blog')
+      setNotificationType('error')
+      setNotificationMessage('error: title or url missing')
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
     }
   }
 
@@ -68,6 +84,7 @@ const App = () => {
     return (
       <div>
         <h2>Log in to application</h2>
+        <Notification message={notificationMessage} type={notificationType} />
         <form onSubmit={handleLogin}>
           <div>username <input value={username} onChange={({ target }) => setUsername(target.value)} /></div>
           <div>password <input type="password" value={password} onChange={({ target }) => setPassword(target.value)} /></div>
@@ -81,6 +98,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
+      <Notification message={notificationMessage} type={notificationType} /> {/* <--- ADD THIS */}
       <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
 
       <h2>create new</h2>
