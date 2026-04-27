@@ -1,3 +1,4 @@
+import Togglable from './components/Togglable'
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog' // The course expects this component
 import blogService from './services/blogs'
@@ -101,6 +102,7 @@ const App = () => {
       <Notification message={notificationMessage} type={notificationType} /> {/* <--- ADD THIS */}
       <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
 
+<Togglable buttonLabel="new blog">
       <h2>create new</h2>
       <form onSubmit={handleCreateBlog}>
         <div>title: <input value={title} onChange={({ target }) => setTitle(target.value)} /></div>
@@ -108,6 +110,7 @@ const App = () => {
         <div>url: <input value={url} onChange={({ target }) => setUrl(target.value)} /></div>
         <button type="submit">create</button>
       </form>
+      </Togglable>
 
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
