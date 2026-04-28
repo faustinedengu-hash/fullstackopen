@@ -1,50 +1,49 @@
 import { useState } from 'react'
 
 const BlogForm = ({ createBlog }) => {
-  // These states now live inside the form, not in App.jsx!
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
+  const [newTitle, setNewTitle] = useState('')
+  const [newAuthor, setNewAuthor] = useState('')
+  const [newUrl, setNewUrl] = useState('')
 
-  const addBlog = (event) => {
+  const handleAddBlog = (event) => {
     event.preventDefault()
-    
-    // We call the function passed from App.jsx and give it the new blog object
     createBlog({
-      title: title,
-      author: author,
-      url: url
+      title: newTitle,
+      author: newAuthor,
+      url: newUrl,
     })
 
-    // Clear the input fields after submitting
-    setTitle('')
-    setAuthor('')
-    setUrl('')
+    setNewTitle('')
+    setNewAuthor('')
+    setNewUrl('')
   }
 
   return (
     <div>
       <h2>create new</h2>
-      <form onSubmit={addBlog}>
+      <form onSubmit={handleAddBlog}>
         <div>
-          title: 
-          <input 
-            value={title} 
-            onChange={({ target }) => setTitle(target.value)} 
+          title:
+          <input
+            value={newTitle}
+            onChange={({ target }) => setNewTitle(target.value)}
+            placeholder='title' // <--- The test looks for this!
           />
         </div>
         <div>
-          author: 
-          <input 
-            value={author} 
-            onChange={({ target }) => setAuthor(target.value)} 
+          author:
+          <input
+            value={newAuthor}
+            onChange={({ target }) => setNewAuthor(target.value)}
+            placeholder='author' // <--- And this!
           />
         </div>
         <div>
-          url: 
-          <input 
-            value={url} 
-            onChange={({ target }) => setUrl(target.value)} 
+          url:
+          <input
+            value={newUrl}
+            onChange={({ target }) => setNewUrl(target.value)}
+            placeholder='url' // <--- And this!
           />
         </div>
         <button type="submit">create</button>
