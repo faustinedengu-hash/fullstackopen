@@ -3,7 +3,6 @@ const baseUrl = '/api/blogs'
 
 let token = null
 
-// This function updates our private token variable
 const setToken = newToken => {
   token = `Bearer ${newToken}`
 }
@@ -13,7 +12,6 @@ const getAll = () => {
   return request.then(response => response.data)
 }
 
-// This sends the POST request with the Authorization header
 const create = async newObject => {
   const config = {
     headers: { Authorization: token },
@@ -22,10 +20,21 @@ const create = async newObject => {
   const response = await axios.post(baseUrl, newObject, config)
   return response.data
 }
-// Add this to your existing blog service file
+
 const update = async (id, newObject) => {
   const response = await axios.put(`${baseUrl}/${id}`, newObject)
   return response.data
 }
 
-export default { getAll, create,update, setToken }
+// THIS IS THE MISSING FUNCTION CAUSING THE ERROR
+const remove = async (id) => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.delete(`${baseUrl}/${id}`, config)
+  return response.data
+}
+
+// Make sure 'remove' is included here!
+export default { getAll, create, update, remove, setToken }

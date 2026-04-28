@@ -70,7 +70,23 @@ const App = () => {
       }, 5000)
     }
   }
-
+  const handleDelete = async (blog) => {
+    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)) {
+      try {
+        await blogService.remove(blog.id)
+        // Filter out the deleted blog from the state to refresh the UI
+        setBlogs(blogs.filter(b => b.id !== blog.id))
+        
+        setNotificationMessage(`Deleted ${blog.title}`)
+        setNotificationType('success')
+        setTimeout(() => setNotificationMessage(null), 5000)
+      } catch (exception) {
+        setNotificationMessage('error: could not delete blog')
+        setNotificationType('error')
+        setTimeout(() => setNotificationMessage(null), 5000)
+      }
+    }
+  }
   const handleLike = async (blog) => {
     const updatedBlog = {
       ...blog,
@@ -113,12 +129,14 @@ const App = () => {
       </Togglable>
       
       {[...blogs]
-        .sort((a, b) => b.likes - a.likes)
+        .sort((a, b) => (b.likes || 0) - (a.likes || 0))
         .map(blog =>
           <Blog 
             key={blog.id} 
             blog={blog} 
             updateLikes={() => handleLike(blog)} 
+            deleteBlog={() => handleDelete(blog)} // Pass the delete function
+            user={user} // Pass the logged-in user
           />
         )
       }

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
-// ADD updateLikes HERE in the props!
-const Blog = ({ blog, updateLikes }) => { 
+const Blog = ({ blog, updateLikes, deleteBlog, user }) => { 
   const [visible, setVisible] = useState(false)
 
   const blogStyle = {
@@ -17,7 +16,7 @@ const Blog = ({ blog, updateLikes }) => {
   }
 
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} className='blog'>
       <div>
         {blog.title} {blog.author} 
         <button onClick={toggleVisibility}>
@@ -30,10 +29,19 @@ const Blog = ({ blog, updateLikes }) => {
           <div>{blog.url}</div>
           <div>
             likes {blog.likes} 
-            {/* Now updateLikes is defined and will work! */}
             <button onClick={updateLikes}>like</button>
           </div>
           <div>{blog.user ? blog.user.name : 'unknown user'}</div>
+          
+          {/* This button MUST be inside this parent <div> */}
+          {blog.user && user && (blog.user.username === user.username) && (
+            <button 
+              style={{ backgroundColor: 'lightblue', marginTop: 5 }} 
+              onClick={deleteBlog}
+            >
+              remove
+            </button>
+          )}
         </div>
       )}
     </div>
