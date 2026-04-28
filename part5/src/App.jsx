@@ -14,14 +14,12 @@ const App = () => {
   const [notificationMessage, setNotificationMessage] = useState(null)
   const [notificationType, setNotificationType] = useState('success')
 
-  // Exercise 5.1 requirement: Fetch blogs from the server
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs(blogs)
     )  
   }, [])
 
-  // Exercise 5.2 requirement: Check for logged in user in local storage
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON) {
@@ -54,7 +52,6 @@ const App = () => {
     setUser(null)
   }
 
-  // Exercise 5.3 & 5.6 requirement: Handle creation of a new blog
   const addBlog = async (blogObject) => {
     try {
       const returnedBlog = await blogService.create(blogObject)
@@ -73,24 +70,24 @@ const App = () => {
       }, 5000)
     }
   }
-const handleLike = async (blog) => {
-  const updatedBlog = {
-    ...blog,
-    likes: blog.likes + 1,
-    user: blog.user.id // The backend usually expects just the ID for the user field
+
+  const handleLike = async (blog) => {
+    const updatedBlog = {
+      ...blog,
+      likes: blog.likes + 1,
+      user: blog.user.id 
+    }
+
+    try {
+      const returnedBlog = await blogService.update(blog.id, updatedBlog)
+      setBlogs(blogs.map(b => b.id !== blog.id ? b : returnedBlog))
+    } catch (exception) {
+      setNotificationMessage('error: could not update likes')
+      setNotificationType('error')
+      setTimeout(() => setNotificationMessage(null), 5000)
+    }
   }
 
-  try {
-    const returnedBlog = await blogService.update(blog.id, updatedBlog)
-    // Update the state: replace the old blog with the one returned from the server
-    setBlogs(blogs.map(b => b.id !== blog.id ? b : returnedBlog))
-  } catch (exception) {
-    setNotificationMessage('error: could not update likes')
-    setNotificationType('error')
-    setTimeout(() => setNotificationMessage(null), 5000)
-  }
-}
-  // VIEW 1: Login Form
   if (user === null) {
     return (
       <div>
@@ -105,7 +102,6 @@ const handleLike = async (blog) => {
     )
   }
 
-  // VIEW 2: Blog list and Creation Form
   return (
     <div>
       <h2>blogs</h2>
@@ -116,15 +112,18 @@ const handleLike = async (blog) => {
         <BlogForm createBlog={addBlog} />
       </Togglable>
       
-      {blogs.map(blog =>
-  <Blog 
-    key={blog.id} 
-    blog={blog} 
-    updateLikes={() => handleLike(blog)} // Pass it as a prop
-  />
-)}
+      {[...blogs]
+        .sort((a, b) => b.likes - a.likes)
+        .map(blog =>
+          <Blog 
+            key={blog.id} 
+            blog={blog} 
+            updateLikes={() => handleLike(blog)} 
+          />
+        )
+      }
     </div>
   )
-}
+} // <--- The missing closing brace for the App component
 
 export default App
