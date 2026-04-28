@@ -1,6 +1,7 @@
+import BlogForm from './components/BlogForm'
 import Togglable from './components/Togglable'
 import { useState, useEffect } from 'react'
-import Blog from './components/Blog' // The course expects this component
+import Blog from './components/Blog' 
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification' 
@@ -10,10 +11,6 @@ const App = () => {
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(null)
-
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
   const [notificationMessage, setNotificationMessage] = useState(null)
   const [notificationType, setNotificationType] = useState('success')
 
@@ -51,29 +48,26 @@ const App = () => {
       }, 5000)
     }
   }
+
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
   }
 
-  // Exercise 5.3 requirement: Handle creation of a new blog
-  const handleCreateBlog = async (event) => {
-    event.preventDefault()
+  // Exercise 5.3 & 5.6 requirement: Handle creation of a new blog
+  const addBlog = async (blogObject) => {
     try {
-      const newBlog = await blogService.create({ title, author, url })
-      setBlogs(blogs.concat(newBlog))
+      const returnedBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(returnedBlog))
+      
+      setNotificationMessage(`a new blog ${blogObject.title} by ${blogObject.author} added`)
       setNotificationType('success')
-      setNotificationMessage(`a new blog ${title} by ${author} added`)
       setTimeout(() => {
         setNotificationMessage(null)
       }, 5000)
-
-      setTitle('')
-      setAuthor('')
-      setUrl('')
     } catch (exception) {
+      setNotificationMessage('error adding blog')
       setNotificationType('error')
-      setNotificationMessage('error: title or url missing')
       setTimeout(() => {
         setNotificationMessage(null)
       }, 5000)
@@ -99,19 +93,13 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
-      <Notification message={notificationMessage} type={notificationType} /> {/* <--- ADD THIS */}
+      <Notification message={notificationMessage} type={notificationType} /> 
       <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
 
-<Togglable buttonLabel="new blog">
-      <h2>create new</h2>
-      <form onSubmit={handleCreateBlog}>
-        <div>title: <input value={title} onChange={({ target }) => setTitle(target.value)} /></div>
-        <div>author: <input value={author} onChange={({ target }) => setAuthor(target.value)} /></div>
-        <div>url: <input value={url} onChange={({ target }) => setUrl(target.value)} /></div>
-        <button type="submit">create</button>
-      </form>
+      <Togglable buttonLabel="new blog">
+        <BlogForm createBlog={addBlog} />
       </Togglable>
-
+      
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
       )}
