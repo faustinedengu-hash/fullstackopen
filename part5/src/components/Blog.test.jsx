@@ -56,3 +56,35 @@ test('clicking the view button displays url and likes', async () => {
   const likes = screen.getByText('likes 5')
   expect(likes).toBeDefined()
 }) // <--- End of second test
+test('clicking the like button twice calls the event handler twice', async () => {
+  const blog = {
+    title: 'Testing mock functions',
+    author: 'Test Author',
+    url: 'http://testurl.com',
+    likes: 5,
+    user: { name: 'Test User' }
+  }
+
+  const userProp = { username: 'testuser' }
+
+  // 1. Create a mock function using Vitest's 'vi.fn()'
+  const mockHandler = vi.fn()
+
+  render(
+    <Blog blog={blog} user={userProp} updateLikes={mockHandler} />
+  )
+
+  const user = userEvent.setup()
+
+  // 2. We must click 'view' first so the 'like' button appears
+  const viewButton = screen.getByText('view')
+  await user.click(viewButton)
+
+  // 3. Find the like button and click it twice
+  const likeButton = screen.getByText('like')
+  await user.click(likeButton)
+  await user.click(likeButton)
+
+  // 4. Verify the mock was called exactly 2 times
+  expect(mockHandler.mock.calls).toHaveLength(2)
+})
