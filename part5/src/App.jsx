@@ -73,7 +73,23 @@ const App = () => {
       }, 5000)
     }
   }
+const handleLike = async (blog) => {
+  const updatedBlog = {
+    ...blog,
+    likes: blog.likes + 1,
+    user: blog.user.id // The backend usually expects just the ID for the user field
+  }
 
+  try {
+    const returnedBlog = await blogService.update(blog.id, updatedBlog)
+    // Update the state: replace the old blog with the one returned from the server
+    setBlogs(blogs.map(b => b.id !== blog.id ? b : returnedBlog))
+  } catch (exception) {
+    setNotificationMessage('error: could not update likes')
+    setNotificationType('error')
+    setTimeout(() => setNotificationMessage(null), 5000)
+  }
+}
   // VIEW 1: Login Form
   if (user === null) {
     return (
@@ -101,8 +117,12 @@ const App = () => {
       </Togglable>
       
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+  <Blog 
+    key={blog.id} 
+    blog={blog} 
+    updateLikes={() => handleLike(blog)} // Pass it as a prop
+  />
+)}
     </div>
   )
 }
