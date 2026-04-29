@@ -1,4 +1,3 @@
-
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const logger = require('./logger')
@@ -61,3 +60,4 @@ module.exports = {
   userExtractor
 
 }
+
