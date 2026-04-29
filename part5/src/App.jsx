@@ -13,8 +13,6 @@ const App = () => {
   const [notificationMessage, setNotificationMessage] = useState(null)
   const [notificationType, setNotificationType] = useState('success')
 
-  // CHANGE 1: Initialize user state directly from localStorage (Lazy Initializer)
-  // This avoids the 'setState in effect' error and is faster!
   const [user, setUser] = useState(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     return loggedUserJSON ? JSON.parse(loggedUserJSON) : null
@@ -26,7 +24,6 @@ const App = () => {
     )  
   }, [])
 
-  // CHANGE 2: Use an effect to sync the token whenever the user state changes
   useEffect(() => {
     if (user) {
       blogService.setToken(user.token)
@@ -41,7 +38,7 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
-    } catch { // CHANGE 3: Removed unused (exception) variable
+    } catch {
       setNotificationType('error')
       setNotificationMessage('wrong username or password')
       setTimeout(() => setNotificationMessage(null), 5000)
@@ -60,7 +57,7 @@ const App = () => {
       setNotificationMessage(`a new blog ${blogObject.title} by ${blogObject.author} added`)
       setNotificationType('success')
       setTimeout(() => setNotificationMessage(null), 5000)
-    } catch { // CHANGE 4: Removed unused (exception)
+    } catch {
       setNotificationMessage('error adding blog')
       setNotificationType('error')
       setTimeout(() => setNotificationMessage(null), 5000)
@@ -75,7 +72,7 @@ const App = () => {
         setNotificationMessage(`Deleted ${blog.title}`)
         setNotificationType('success')
         setTimeout(() => setNotificationMessage(null), 5000)
-      } catch { // CHANGE 5: Removed unused (exception)
+      } catch {
         setNotificationMessage('error: could not delete blog')
         setNotificationType('error')
         setTimeout(() => setNotificationMessage(null), 5000)
@@ -93,7 +90,7 @@ const App = () => {
     try {
       const returnedBlog = await blogService.update(blog.id, updatedBlog)
       setBlogs(blogs.map(b => b.id !== blog.id ? b : returnedBlog))
-    } catch { // CHANGE 6: Removed unused (exception)
+    } catch {
       setNotificationMessage('error: could not update likes')
       setNotificationType('error')
       setTimeout(() => setNotificationMessage(null), 5000)
@@ -106,8 +103,8 @@ const App = () => {
         <h2>Log in to application</h2>
         <Notification message={notificationMessage} type={notificationType} />
         <form onSubmit={handleLogin}>
-          <div>username <input value={username} onChange={({ target }) => setUsername(target.value)} /></div>
-          <div>password <input type="password" value={password} onChange={({ target }) => setPassword(target.value)} /></div>
+          <div>username <input name="Username" value={username} onChange={({ target }) => setUsername(target.value)} /></div>
+          <div>password <input name="Password" type="password" value={password} onChange={({ target }) => setPassword(target.value)} /></div>
           <button type="submit">login</button>
         </form>
       </div>
