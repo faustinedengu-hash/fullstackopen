@@ -1,7 +1,6 @@
 const { test, expect, describe, beforeEach } = require('@playwright/test')
 
 describe('Blog app', () => {
-  // Before every single test, the robot goes to our homepage
   beforeEach(async ({ page }) => {
     await page.goto('')
   })
@@ -29,29 +28,41 @@ describe('Blog app', () => {
     })
   })
 
-  // --- EXERCISE 5.19: THIS IS THE NEW PART ---
   describe('When logged in', () => {
     beforeEach(async ({ page }) => {
-      // The robot automatically logs in before running the blog creation test
       await page.locator('input[name="Username"]').fill('faustine_test')
       await page.locator('input[name="Password"]').fill('password123')
       await page.getByRole('button', { name: 'login' }).click()
     })
 
     test('a new blog can be created', async ({ page }) => {
-      // 1. Click the button to reveal the form (assuming the button to open it says 'new blog')
       await page.getByRole('button', { name: 'new blog' }).click()
-
-      // 2. Fill out the form fields using the exact placeholders from your screenshot
       await page.getByPlaceholder('title').fill('A Robot Wrote This Blog')
       await page.getByPlaceholder('author').fill('Playwright Bot')
       await page.getByPlaceholder('url').fill('http://robot-blog.com')
-
-      // 3. Click the create button
       await page.getByRole('button', { name: 'create' }).click()
 
-      // 4. Verify the new blog's title is rendered on the screen
       await expect(page.getByText('A Robot Wrote This Blog').first()).toBeVisible()
+    })
+
+    // EXERCISE 5.20 - Now it is safely outside the beforeEach!
+    test('a blog can be liked', async ({ page }) => {
+      await page.getByRole('button', { name: 'new blog' }).click()
+      await page.getByPlaceholder('title').fill('A Blog to Like')
+      await page.getByPlaceholder('author').fill('Playwright Bot')
+      await page.getByPlaceholder('url').fill('http://like-me.com')
+      await page.getByRole('button', { name: 'create' }).click()
+
+      await expect(page.getByText('A Blog to Like').first()).toBeVisible()
+
+      // Expand the last blog in the list
+      await page.getByRole('button', { name: 'view' }).last().click()
+      
+      // Smash the like button (using .first() so the robot doesn't panic)
+      await page.getByRole('button', { name: 'like' }).first().click()
+
+      // Verify the likes go up to 1 (using .first() to ignore any other blogs)
+      await expect(page.getByText('likes 1').first()).toBeVisible()
     })
   })
 })
