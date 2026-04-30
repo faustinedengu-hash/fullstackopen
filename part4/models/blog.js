@@ -7,8 +7,9 @@ const blogSchema = new mongoose.Schema({
   likes: { type: Number, default: 0 },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User' // This links the blog to the User model
-  }
+    ref: 'User'
+  },
+  comments: [String] // This is the only new line we added
 })
 
 blogSchema.set('toJSON', {
