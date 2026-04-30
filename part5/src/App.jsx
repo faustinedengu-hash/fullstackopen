@@ -29,11 +29,19 @@ const User = ({ users }) => {
   )
 }
 
-const BlogView = ({ blogs, handleLike }) => {
+// UPDATE: BlogView now has the comments form and list
+const BlogView = ({ blogs, handleLike, handleComment }) => {
+  const [comment, setComment] = useState('')
   const id = useParams().id
   const blog = blogs.find(b => b.id === id)
 
   if (!blog) return null
+
+  const onSubmitComment = (event) => {
+    event.preventDefault()
+    handleComment(blog.id, comment)
+    setComment('')
+  }
 
   return (
     <div>
@@ -43,7 +51,21 @@ const BlogView = ({ blogs, handleLike }) => {
         {blog.likes} likes 
         <button onClick={() => handleLike(blog)}>like</button>
       </div>
-      <div>added by {blog.user.name}</div>
+      <div>added by {blog.user ? blog.user.name : 'unknown'}</div>
+
+      <h3>comments</h3>
+      <form onSubmit={onSubmitComment}>
+        <input 
+          value={comment} 
+          onChange={({ target }) => setComment(target.value)} 
+        />
+        <button type="submit">add comment</button>
+      </form>
+      <ul>
+        {(blog.comments || []).map((c, index) => (
+          <li key={index}>{c}</li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -122,6 +144,7 @@ const App = () => {
       }
     }
   }
+
   const handleLike = async (blog) => {
     const updatedBlog = {
       ...blog,
@@ -135,6 +158,21 @@ const App = () => {
     } catch (error) {
       setNotificationType('error')
       setNotificationMessage('error: could not update likes')
+      setTimeout(() => setNotificationMessage(null), 5000)
+    }
+  }
+
+  // UPDATE: Added handleComment function here
+  const handleComment = async (id, comment) => {
+    try {
+      const updatedBlog = await blogService.addComment(id, comment)
+      setBlogs(blogs.map(b => b.id !== id ? b : updatedBlog))
+      setNotificationType('success')
+      setNotificationMessage('Comment added!')
+      setTimeout(() => setNotificationMessage(null), 5000)
+    } catch (error) {
+      setNotificationType('error')
+      setNotificationMessage('error: could not add comment')
       setTimeout(() => setNotificationMessage(null), 5000)
     }
   }
@@ -200,7 +238,9 @@ const App = () => {
         } />
 
         <Route path="/users/:id" element={<User users={users} />} />
-        <Route path="/blogs/:id" element={<BlogView blogs={blogs} handleLike={handleLike} />} />
+        
+        {/* UPDATE: Passed handleComment to the BlogView route */}
+        <Route path="/blogs/:id" element={<BlogView blogs={blogs} handleLike={handleLike} handleComment={handleComment} />} />
       </Routes>
     </div>
   )
