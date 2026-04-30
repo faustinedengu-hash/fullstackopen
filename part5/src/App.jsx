@@ -1,3 +1,5 @@
+import userService from './services/users'
+import { Routes, Route, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog' 
 import blogService from './services/blogs'
@@ -8,6 +10,7 @@ import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
+  const [users, setUsers] = useState([])
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
   const [notificationMessage, setNotificationMessage] = useState(null)
@@ -24,6 +27,11 @@ const App = () => {
       setBlogs(blogs)
     )  
   }, [])
+  useEffect(() => {
+  userService.getAll().then(initialUsers => {
+    setUsers(initialUsers)
+  })
+}, [])
 
   // Ensure token is set if user is logged in
   useEffect(() => {
@@ -119,28 +127,89 @@ const App = () => {
     )
   }
 
-  return (
+ return (
     <div>
-      <h2>blogs</h2>
-      <Notification message={notificationMessage} type={notificationType} /> 
-      <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
+      <nav style={{ background: '#eee', padding: '10px', marginBottom: '10px' }}>
+      <Link style={{ padding: '5px' }} to="/">blogs</Link>
+      <Link style={{ padding: '5px' }} to="/users">users</Link>
+    </nav>
 
-      <Togglable buttonLabel="new blog">
-        <BlogForm createBlog={addBlog} />
-      </Togglable>
-      
-      {[...blogs]
-        .sort((a, b) => (b.likes || 0) - (a.likes || 0))
-        .map(blog =>
-          <Blog 
-            key={blog.id} 
-            blog={blog} 
-            updateLikes={() => handleLike(blog)} 
-            deleteBlog={() => handleDelete(blog)} 
-            user={user} 
-          />
-        )
-      }
+    <h2>blogs</h2>
+      <h2>blogs</h2>
+      <Notification message={notificationMessage} type={notificationType} />
+
+      {user === null ? (
+        <form onSubmit={handleLogin}>
+          <div>
+            username
+            <input
+              type="text"
+              value={username}
+              name="Username"
+              onChange={({ target }) => setUsername(target.value)}
+            />
+          </div>
+          <div>
+            password
+            <input
+              type="password"
+              value={password}
+              name="Password"
+              onChange={({ target }) => setPassword(target.value)}
+            />
+          </div>
+          <button type="submit">login</button>
+        </form>
+      ) : (
+        <div>
+          <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
+
+          <Routes>
+            {/* The Home View: Show the form and the list of blogs */}
+            <Route path="/" element={
+              <div>
+                <Togglable buttonLabel='new blog'>
+                  <BlogForm createBlog={addBlog} />
+                </Togglable>
+
+                {blogs
+                  .sort((a, b) => b.likes - a.likes)
+                  .map(blog =>
+                    <Blog 
+                      key={blog.id} 
+                      blog={blog} 
+                      handleDelete={() => handleDelete(blog)} 
+                      user={user} 
+                    />
+                  )
+                }
+              </div>
+            } />
+
+            {/* Exercise 5.24 starts here: We will add the /users route next */}
+            <Route path="/users" element={
+              <div>
+                <h2>Users</h2>
+              <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th><strong>blogs created</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map(u => (
+          <tr key={u.id}>
+            <td>{u.name}</td>
+            <td>{u.blogs.length}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </div>} />
+          </Routes>
+        </div>
+      )}
     </div>
   )
 }
