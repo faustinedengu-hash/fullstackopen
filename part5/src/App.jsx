@@ -29,6 +29,25 @@ const User = ({ users }) => {
   )
 }
 
+const BlogView = ({ blogs, handleLike }) => {
+  const id = useParams().id
+  const blog = blogs.find(b => b.id === id)
+
+  if (!blog) return null
+
+  return (
+    <div>
+      <h2>{blog.title} {blog.author}</h2>
+      <div><a href={blog.url}>{blog.url}</a></div>
+      <div>
+        {blog.likes} likes 
+        <button onClick={() => handleLike(blog)}>like</button>
+      </div>
+      <div>added by {blog.user.name}</div>
+    </div>
+  )
+}
+
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [users, setUsers] = useState([])
@@ -103,6 +122,22 @@ const App = () => {
       }
     }
   }
+  const handleLike = async (blog) => {
+    const updatedBlog = {
+      ...blog,
+      likes: (blog.likes || 0) + 1,
+      user: blog.user.id || blog.user 
+    }
+
+    try {
+      const returnedBlog = await blogService.update(blog.id, updatedBlog)
+      setBlogs(blogs.map(b => b.id !== blog.id ? b : returnedBlog))
+    } catch (error) {
+      setNotificationType('error')
+      setNotificationMessage('error: could not update likes')
+      setTimeout(() => setNotificationMessage(null), 5000)
+    }
+  }
 
   if (user === null) {
     return (
@@ -165,6 +200,7 @@ const App = () => {
         } />
 
         <Route path="/users/:id" element={<User users={users} />} />
+        <Route path="/blogs/:id" element={<BlogView blogs={blogs} handleLike={handleLike} />} />
       </Routes>
     </div>
   )
