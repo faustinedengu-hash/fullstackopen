@@ -1,25 +1,26 @@
+
 import { useSelector, useDispatch } from 'react-redux'
+// 1. Import the action creators (You had this perfect!)
+import { voteAnecdote, createAnecdote } from './reducers/anecdoteReducer'
 
 const App = () => {
   const anecdotes = useSelector(state => 
-  [...state].sort((a, b) => b.votes - a.votes)
-)
+    [...state].sort((a, b) => b.votes - a.votes)
+  )
   const dispatch = useDispatch()
+
   const addAnecdote = (event) => {
     event.preventDefault()
     const content = event.target.anecdote.value
     event.target.anecdote.value = ''
-    dispatch({
-      type: 'NEW_ANECDOTE',
-      payload: { content } // We only need to send the text now!
-    })
+    
+    // 2. USE the action creator here instead of the raw object!
+    dispatch(createAnecdote(content)) 
   }
 
   const vote = (id) => {
-    dispatch({
-      type: 'VOTE',
-      payload: { id }
-    })
+    // 3. USE the action creator here instead of the raw object!
+    dispatch(voteAnecdote(id))
   }
 
   return (
@@ -37,13 +38,12 @@ const App = () => {
         </div>
       )}
       <h2>create new</h2>
-      {/* 1. Link the function to the form submit event */}
       <form onSubmit={addAnecdote}>
-        {/* 2. Add the name "anecdote" so your function can find the value */}
         <div><input name="anecdote" /></div>
         <button type="submit">create</button>
       </form>
     </div>
   )
 }
+
 export default App
