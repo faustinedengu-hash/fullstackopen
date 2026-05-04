@@ -1,23 +1,18 @@
 import { useDispatch } from 'react-redux'
-import { createAnecdote } from '../reducers/anecdoteReducer'
+// 1. Import the new Thunk instead of the regular action
+import { createNewAnecdote } from '../reducers/anecdoteReducer'
 import { setNotification, clearNotification } from '../reducers/notificationReducer'
-// 1. Import the service
-import anecdoteService from '../services/anecdotes'
 
 const AnecdoteForm = () => {
   const dispatch = useDispatch()
 
-  // 2. Make this function async
   const addAnecdote = async (event) => {
     event.preventDefault()
     const content = event.target.anecdote.value
     event.target.anecdote.value = ''
     
-    // 3. Save to the database FIRST
-    const newAnecdote = await anecdoteService.createNew(content)
-    
-    // 4. Send the completely formatted object (with its new ID) to Redux
-    dispatch(createAnecdote(newAnecdote))
+    // 2. Just dispatch the Thunk! Redux handles the async DB save.
+    dispatch(createNewAnecdote(content))
 
     dispatch(setNotification(`You created '${content}'`))
     setTimeout(() => {
