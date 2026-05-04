@@ -2,16 +2,29 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const notificationSlice = createSlice({
   name: 'notification',
-  initialState: '', // Starts as an empty string (no notification)
+  initialState: '',
   reducers: {
-    setNotification(state, action) {
+    // We rename these so the Thunk can use the name 'setNotification'
+    showNotification(state, action) {
       return action.payload
     },
-    clearNotification() {
-      return '' // Resets back to empty
+    hideNotification() {
+      return ''
     }
   }
 })
 
-export const { setNotification, clearNotification } = notificationSlice.actions
+export const { showNotification, hideNotification } = notificationSlice.actions
+
+// NEW THUNK: Handles setting the message AND clearing it after X seconds!
+export const setNotification = (message, timeInSeconds) => {
+  return async dispatch => {
+    dispatch(showNotification(message))
+    
+    setTimeout(() => {
+      dispatch(hideNotification())
+    }, timeInSeconds * 1000) // Multiply by 1000 to convert seconds to milliseconds
+  }
+}
+
 export default notificationSlice.reducer

@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux'
-// 1. Import the new Thunk instead of the regular action
 import { createNewAnecdote } from '../reducers/anecdoteReducer'
-import { setNotification, clearNotification } from '../reducers/notificationReducer'
+// 1. We only need to import the Thunk now!
+import { setNotification } from '../reducers/notificationReducer'
 
 const AnecdoteForm = () => {
   const dispatch = useDispatch()
@@ -11,13 +11,10 @@ const AnecdoteForm = () => {
     const content = event.target.anecdote.value
     event.target.anecdote.value = ''
     
-    // 2. Just dispatch the Thunk! Redux handles the async DB save.
     dispatch(createNewAnecdote(content))
 
-    dispatch(setNotification(`You created '${content}'`))
-    setTimeout(() => {
-      dispatch(clearNotification())
-    }, 5000)
+    // 2. Just one simple line of code. Display message for 5 seconds.
+    dispatch(setNotification(`You created '${content}'`, 5))
   }
 
   return (

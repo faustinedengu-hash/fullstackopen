@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { voteForAnecdote } from '../reducers/anecdoteReducer'
-import { setNotification, clearNotification } from '../reducers/notificationReducer'
+// 1. We only need the Thunk!
+import { setNotification } from '../reducers/notificationReducer'
 
 const AnecdoteList = () => {
   const anecdotes = useSelector(state => {
@@ -14,13 +15,11 @@ const AnecdoteList = () => {
 
   const dispatch = useDispatch()
 
-  // We only keep ONE vote function, and it takes the whole 'anecdote' object
   const vote = (anecdote) => {
-  dispatch(voteForAnecdote(anecdote))
-    dispatch(setNotification(`You voted for '${anecdote.content}'`))
-    setTimeout(() => {
-      dispatch(clearNotification())
-    }, 5000)
+    dispatch(voteForAnecdote(anecdote))
+    
+    // 2. Just one simple line of code. Display message for 5 seconds.
+    dispatch(setNotification(`You voted for '${anecdote.content}'`, 5))
   }
 
   return (
@@ -32,7 +31,6 @@ const AnecdoteList = () => {
           </div>
           <div>
             has {anecdote.votes}
-            {/* Update the button to pass the whole anecdote! */}
             <button onClick={() => vote(anecdote)}>vote</button>
           </div>
         </div>
