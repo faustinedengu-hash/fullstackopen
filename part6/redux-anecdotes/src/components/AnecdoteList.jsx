@@ -1,8 +1,8 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { voteAnecdote } from '../reducers/anecdoteReducer'
+import { setNotification, clearNotification } from '../reducers/notificationReducer'
 
 const AnecdoteList = () => {
-  // 1. The new filtering useSelector
   const anecdotes = useSelector(state => {
     if (state.filter === '') {
       return [...state.anecdotes].sort((a, b) => b.votes - a.votes)
@@ -12,11 +12,15 @@ const AnecdoteList = () => {
       .sort((a, b) => b.votes - a.votes)
   })
 
-  // 2. We still need dispatch for the vote button!
   const dispatch = useDispatch()
 
-  const vote = (id) => {
-    dispatch(voteAnecdote(id))
+  // We only keep ONE vote function, and it takes the whole 'anecdote' object
+  const vote = (anecdote) => {
+    dispatch(voteAnecdote(anecdote.id))
+    dispatch(setNotification(`You voted for '${anecdote.content}'`))
+    setTimeout(() => {
+      dispatch(clearNotification())
+    }, 5000)
   }
 
   return (
@@ -28,7 +32,8 @@ const AnecdoteList = () => {
           </div>
           <div>
             has {anecdote.votes}
-            <button onClick={() => vote(anecdote.id)}>vote</button>
+            {/* Update the button to pass the whole anecdote! */}
+            <button onClick={() => vote(anecdote)}>vote</button>
           </div>
         </div>
       )}
