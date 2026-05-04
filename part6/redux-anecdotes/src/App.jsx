@@ -1,10 +1,24 @@
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+
 import AnecdoteForm from './components/AnecdoteForm'
 import AnecdoteList from './components/AnecdoteList'
 import Filter from './components/Filter'
-import { useSelector } from 'react-redux'
 import Notification from './components/Notification'
 
+import anecdoteService from './services/anecdotes'
+import { setAnecdotes } from './reducers/anecdoteReducer'
+
 const App = () => {
+  const dispatch = useDispatch()
+
+  // The effect runs once when the app starts, fetches the data, and sends it to Redux
+  useEffect(() => {
+    anecdoteService.getAll().then(anecdotes =>
+      dispatch(setAnecdotes(anecdotes))
+    )
+  }, [dispatch])
+
   return (
     <div>
       <h2>Anecdotes</h2>
