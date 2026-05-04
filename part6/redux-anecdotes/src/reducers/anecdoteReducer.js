@@ -36,4 +36,14 @@ export const createNewAnecdote = (content) => {
     dispatch(createAnecdote(newAnecdote))
   }
 }
+export const voteForAnecdote = (anecdote) => {
+  return async dispatch => {
+    // 1. Create a copy of the anecdote with the votes increased by 1
+    const updatedAnecdote = { ...anecdote, votes: anecdote.votes + 1 }
+    // 2. Send it to the backend
+    const returnedAnecdote = await anecdoteService.update(anecdote.id, updatedAnecdote)
+    // 3. Dispatch the regular Redux action to update the UI
+    dispatch(voteAnecdote(returnedAnecdote.id))
+  }
+}
 export default anecdoteSlice.reducer

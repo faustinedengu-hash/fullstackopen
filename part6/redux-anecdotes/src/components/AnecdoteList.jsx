@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { voteAnecdote } from '../reducers/anecdoteReducer'
+import { voteForAnecdote } from '../reducers/anecdoteReducer'
 import { setNotification, clearNotification } from '../reducers/notificationReducer'
 
 const AnecdoteList = () => {
@@ -16,7 +16,7 @@ const AnecdoteList = () => {
 
   // We only keep ONE vote function, and it takes the whole 'anecdote' object
   const vote = (anecdote) => {
-    dispatch(voteAnecdote(anecdote.id))
+  dispatch(voteForAnecdote(anecdote))
     dispatch(setNotification(`You voted for '${anecdote.content}'`))
     setTimeout(() => {
       dispatch(clearNotification())
