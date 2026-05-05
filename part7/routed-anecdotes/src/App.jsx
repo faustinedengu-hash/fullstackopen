@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, useMatch } from 'react-router-dom'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Menu from './components/Menu'
 import AnecdoteList from './components/AnecdoteList'
 import About from './components/About'
 import Footer from './components/Footer'
 import CreateNew from './components/CreateNew'
+import Anecdote from './components/Anecdote'
 
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
@@ -27,6 +29,10 @@ const App = () => {
   const addAnecdote = (anecdote) => {
     setAnecdotes(anecdotes.concat({ ...anecdote, id: Math.round(Math.random() * 10000) }))
   }
+   const match = useMatch('/anecdotes/:id')
+  const anecdote = match 
+    ? anecdotes.find(a => a.id === Number(match.params.id))
+    : null
 
   return (
     <Router>
@@ -35,6 +41,7 @@ const App = () => {
         <Menu />
         <Routes>
           <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
+          <Route path="/anecdotes/:id" element={<Anecdote anecdote={anecdote} />} />
           <Route path="/create" element={<CreateNew addAnecdote={addAnecdote} />} />
           <Route path="/about" element={<About />} />
         </Routes>
