@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, useMatch } from 'react-router-dom'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Menu from './components/Menu'
 import AnecdoteList from './components/AnecdoteList'
 import About from './components/About'
@@ -8,7 +7,10 @@ import Footer from './components/Footer'
 import CreateNew from './components/CreateNew'
 import Anecdote from './components/Anecdote'
 
+
 const App = () => {
+  const [notification, setNotification] = useState('')
+
   const [anecdotes, setAnecdotes] = useState([
     {
       content: 'If it hurts, do it more often',
@@ -29,26 +31,31 @@ const App = () => {
   const addAnecdote = (anecdote) => {
     setAnecdotes(anecdotes.concat({ ...anecdote, id: Math.round(Math.random() * 10000) }))
   }
-   const match = useMatch('/anecdotes/:id')
+  
+  const match = useMatch('/anecdotes/:id')
   const anecdote = match 
     ? anecdotes.find(a => a.id === Number(match.params.id))
     : null
 
   return (
-    <Router>
       <div>
         <h1>Software anecdotes</h1>
         <Menu />
+        {notification && <div style={{ border: 'solid', padding: 10, borderWidth: 1, marginBottom: 5 }}>{notification}</div>}
         <Routes>
           <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
           <Route path="/anecdotes/:id" element={<Anecdote anecdote={anecdote} />} />
-          <Route path="/create" element={<CreateNew addAnecdote={addAnecdote} />} />
+          <Route path="/create" element={<CreateNew addAnecdote={addAnecdote} setNotification={setNotification} />} />
           <Route path="/about" element={<About />} />
         </Routes>
         <Footer />
       </div>
-    </Router>
   )
 }
 
-export default App
+// We wrap the App in the Router down here!
+export default () => (
+  <Router>
+    <App />
+  </Router>
+)

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const CreateNew = ({ addAnecdote }) => {
+const CreateNew = ({ addAnecdote , setNotification }) => {
   const [content, setContent] = useState('')
   const [author, setAuthor] = useState('')
   const [info, setInfo] = useState('')
@@ -10,6 +10,13 @@ const CreateNew = ({ addAnecdote }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     addAnecdote({ content, author, info, votes: 0 })
+    setNotification(`A new anecdote '${content}' created!`)
+    
+    // 3. Clear the notification after 5 seconds
+    setTimeout(() => {
+      setNotification('')
+    }, 5000)
+    
     navigate('/')
   }
 
