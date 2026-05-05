@@ -1,24 +1,44 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+// 1. Import our custom hook
+import { useField } from '../hooks' 
 
-const CreateNew = ({ addAnecdote , setNotification }) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
+const CreateNew = ({ addAnecdote, setNotification }) => {
+  // 2. Use the hook instead of useState!
+  const content = useField('text')
+  const author = useField('text')
+  const info = useField('text')
+  
   const navigate = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    addAnecdote({ content, author, info, votes: 0 })
-    setNotification(`A new anecdote '${content}' created!`)
     
-    // 3. Clear the notification after 5 seconds
+    // Because our hook returns an object { type, value, onChange }, 
+    // we must grab the .value property when we submit!
+    addAnecdote({ 
+      content: content.value, 
+      author: author.value, 
+      info: info.value, 
+      votes: 0 
+    })
+    
+    setNotification(`A new anecdote '${content.value}' created!`)
+    
     setTimeout(() => {
       setNotification('')
     }, 5000)
     
     navigate('/')
   }
+  const handleReset = (e) => {
+    e.preventDefault()
+    content.reset()
+    author.reset()
+    info.reset()
+  }
+  const { reset: resetContent, ...contentInput } = content
+  const { reset: resetAuthor, ...authorInput } = author
+  const { reset: resetInfo, ...infoInput } = info
 
   return (
     <div>
@@ -26,17 +46,21 @@ const CreateNew = ({ addAnecdote , setNotification }) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          {/* 3. The Spread Operator unpacks type, value, and onChange for us! */}
+          <input name='content' {...content} />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input name='author' {...author} />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+          url for more info
+          <input name='info' {...infoInput} />
         </div>
-        <button>create</button>
+        <button type="submit">create</button>
+        {/* NEW: The reset button */}
+        <button onClick={handleReset}>reset</button>
       </form>
     </div>
   )
