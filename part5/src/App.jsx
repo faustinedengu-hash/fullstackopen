@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Link, useParams } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Container, TextField, Button, AppBar, Toolbar, 
   Table, TableBody, TableCell, TableContainer, 
-  TableRow, Paper, TableHead, Box, Typography, Divider, 
-  List, ListItem, ListItemText 
+  TableRow, Paper, TableHead
 } from '@mui/material'
 
 import Blog from './components/Blog' 
+import User from './components/User' // <-- NEW IMPORT
+import BlogView from './components/BlogView' // <-- NEW IMPORT
 import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
@@ -18,99 +19,10 @@ import Togglable from './components/Togglable'
 import { useNotificationDispatch } from './NotificationContext'
 import { useUserValue, useUserDispatch } from './UserContext'
 
-const User = ({ users }) => {
-  const id = useParams().id
-  const user = users.find(u => u.id === id)
-  if (!user) return <p>User not found</p>
-
-  return (
-    <div>
-      <h2>{user.name}</h2>
-      <h3>added blogs</h3>
-      <ul>
-        {user.blogs.map(blog => <li key={blog.id}>{blog.title}</li>)}
-      </ul>
-    </div>
-  )
-}
-
-const BlogView = ({ blogs, handleLike, handleComment }) => {
-  const [comment, setComment] = useState('')
-  const id = useParams().id
-  const blog = blogs.find(b => b.id === id)
-
-  if (!blog) return null
-
-  const onSubmitComment = (event) => {
-    event.preventDefault()
-    handleComment(blog.id, comment)
-    setComment('')
-  }
-
-  return (
-    <Box sx={{ marginTop: 3 }}>
-      <Paper elevation={3} sx={{ padding: 4, borderRadius: 2 }}>
-        <Typography variant="h4" component="h2" gutterBottom>
-          {blog.title}
-        </Typography>
-        <Typography variant="h6" color="textSecondary" gutterBottom>
-          by {blog.author}
-        </Typography>
-        
-        <Box sx={{ my: 2 }}>
-          <Typography variant="body1">
-            <strong>URL:</strong> <a href={blog.url} target="_blank" rel="noopener noreferrer">{blog.url}</a>
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Typography variant="h6">{blog.likes} likes</Typography>
-          <Button variant="outlined" color="primary" onClick={() => handleLike(blog)}>
-            Like
-          </Button>
-        </Box>
-
-        <Typography variant="subtitle1" color="textSecondary" sx={{ mb: 3 }}>
-          added by <strong>{blog.user ? blog.user.name : 'unknown'}</strong>
-        </Typography>
-
-        <Divider sx={{ mb: 3 }} />
-
-        <Typography variant="h5" gutterBottom>Comments</Typography>
-        
-        <Box component="form" onSubmit={onSubmitComment} sx={{ display: 'flex', gap: 1, mb: 3 }}>
-          <TextField
-            label="Write a comment..."
-            size="small"
-            fullWidth
-            value={comment}
-            onChange={({ target }) => setComment(target.value)}
-          />
-          <Button variant="contained" type="submit">
-            add comment
-          </Button>
-        </Box>
-
-        <List>
-          {(blog.comments || []).map((c, index) => (
-            <div key={index}>
-              <ListItem sx={{ px: 0 }}>
-                <ListItemText primary={c} />
-              </ListItem>
-              <Divider variant="inset" component="li" sx={{ ml: 0 }} />
-            </div>
-          ))}
-        </List>
-      </Paper>
-    </Box>
-  )
-}
-
 const App = () => {
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
 
-  // EXERCISE 7.12: Fetch user from our new global Context!
   const user = useUserValue()
   const dispatchUser = useUserDispatch()
 
@@ -162,7 +74,6 @@ const App = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blogs'] })
   })
 
-  // Check local storage for a logged in user when the app first loads
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON) {
@@ -179,7 +90,6 @@ const App = () => {
       window.localStorage.setItem('loggedBlogappUser', JSON.stringify(loggedInUser)) 
       blogService.setToken(loggedInUser.token) 
       
-      // Dispatch the new user to our global context!
       dispatchUser({ type: 'SET_USER', payload: loggedInUser })
       
       setUsername('')
@@ -192,7 +102,6 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
-    // Clear the user from our global context!
     dispatchUser({ type: 'CLEAR_USER' })
     notify('Logged out successfully', 'success')
   }
