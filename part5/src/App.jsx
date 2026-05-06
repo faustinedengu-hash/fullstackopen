@@ -16,6 +16,7 @@ import Notification from './components/Notification'
 import BlogForm from './components/BlogForm'
 import Togglable from './components/Togglable'
 import { useNotificationDispatch } from './NotificationContext'
+import { useUserValue, useUserDispatch } from './UserContext'
 
 const User = ({ users }) => {
   const id = useParams().id
@@ -108,10 +109,10 @@ const BlogView = ({ blogs, handleLike, handleComment }) => {
 const App = () => {
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
-  const [user, setUser] = useState(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
-    return loggedUserJSON ? JSON.parse(loggedUserJSON) : null
-  })
+
+  // EXERCISE 7.12: Fetch user from our new global Context!
+  const user = useUserValue()
+  const dispatchUser = useUserDispatch()
 
   const dispatchNotification = useNotificationDispatch()
   const notify = (message, type = 'success') => {
@@ -123,14 +124,12 @@ const App = () => {
 
   const queryClient = useQueryClient()
 
-  // EXERCISE 7.10: React Query for Blogs
   const { data: blogs = [], isLoading: blogsLoading } = useQuery({
     queryKey: ['blogs'],
     queryFn: blogService.getAll,
     refetchOnWindowFocus: false
   })
 
-  // EXERCISE 7.11: React Query for Users (NEW)
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
     queryFn: userService.getAll,
@@ -141,7 +140,6 @@ const App = () => {
     mutationFn: blogService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] })
-      // Also invalidate users so their blog count goes up instantly!
       queryClient.invalidateQueries({ queryKey: ['users'] })
     }
   })
@@ -164,20 +162,29 @@ const App = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blogs'] })
   })
 
+  // Check local storage for a logged in user when the app first loads
   useEffect(() => {
-    if (user) blogService.setToken(user.token)
-  }, [user])
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
+    if (loggedUserJSON) {
+      const parsedUser = JSON.parse(loggedUserJSON)
+      dispatchUser({ type: 'SET_USER', payload: parsedUser })
+      blogService.setToken(parsedUser.token)
+    }
+  }, [dispatchUser])
 
   const handleLogin = async (event) => {
     event.preventDefault()
     try {
-      const user = await loginService.login({ username, password })
-      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user)) 
-      blogService.setToken(user.token) 
-      setUser(user)
+      const loggedInUser = await loginService.login({ username, password })
+      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(loggedInUser)) 
+      blogService.setToken(loggedInUser.token) 
+      
+      // Dispatch the new user to our global context!
+      dispatchUser({ type: 'SET_USER', payload: loggedInUser })
+      
       setUsername('')
       setPassword('')
-      notify(`Welcome back ${user.name}!`, 'success')
+      notify(`Welcome back ${loggedInUser.name}!`, 'success')
     } catch (exception) {
       notify('wrong username or password', 'error')
     }
@@ -185,7 +192,8 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
-    setUser(null)
+    // Clear the user from our global context!
+    dispatchUser({ type: 'CLEAR_USER' })
     notify('Logged out successfully', 'success')
   }
 
