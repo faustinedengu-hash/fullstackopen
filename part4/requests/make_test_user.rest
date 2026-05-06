@@ -5,3 +5,12 @@ Content-Type: application/json
   "name": "Tony Stark",
   "password": "password123"
 }
+### Create a new admin user
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "name": "Super User",
+  "password": "password123"
+}
