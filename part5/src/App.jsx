@@ -106,8 +106,6 @@ const BlogView = ({ blogs, handleLike, handleComment }) => {
 }
 
 const App = () => {
-  // 1. Notice useState and useEffect for blogs are GONE!
-  const [users, setUsers] = useState([])
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(() => {
@@ -123,20 +121,29 @@ const App = () => {
     }, 5000)
   }
 
-  // 2. Setup React Query Client
   const queryClient = useQueryClient()
 
-  // 3. FETCH: Get blogs automatically
-  const { data: blogs = [], isLoading } = useQuery({
+  // EXERCISE 7.10: React Query for Blogs
+  const { data: blogs = [], isLoading: blogsLoading } = useQuery({
     queryKey: ['blogs'],
     queryFn: blogService.getAll,
     refetchOnWindowFocus: false
   })
 
-  // 4. MUTATIONS: Setup our action functions
+  // EXERCISE 7.11: React Query for Users (NEW)
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: userService.getAll,
+    refetchOnWindowFocus: false
+  })
+
   const newBlogMutation = useMutation({
     mutationFn: blogService.create,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+      // Also invalidate users so their blog count goes up instantly!
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    }
   })
 
   const updateBlogMutation = useMutation({
@@ -146,18 +153,16 @@ const App = () => {
 
   const deleteBlogMutation = useMutation({
     mutationFn: blogService.remove,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    }
   })
 
   const commentMutation = useMutation({
     mutationFn: ({ id, comment }) => blogService.addComment(id, comment),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blogs'] })
   })
-
-  useEffect(() => {
-    // We will convert users to React Query later!
-    userService.getAll().then(initialUsers => setUsers(initialUsers))
-  }, [])
 
   useEffect(() => {
     if (user) blogService.setToken(user.token)
@@ -184,7 +189,6 @@ const App = () => {
     notify('Logged out successfully', 'success')
   }
 
-  // Refactored helper functions to use mutations!
   const addBlog = (blogObject) => {
     newBlogMutation.mutate(blogObject, {
       onSuccess: () => notify(`a new blog ${blogObject.title} by ${blogObject.author} added`, 'success'),
@@ -214,8 +218,7 @@ const App = () => {
     })
   }
 
-  // Display a loading state while React Query fetches
-  if (isLoading) {
+  if (blogsLoading || usersLoading) {
     return <div>loading data...</div>
   }
 
@@ -255,7 +258,6 @@ const App = () => {
             <Togglable buttonLabel='new blog'>
               <BlogForm createBlog={addBlog} />
             </Togglable>
-            {/* We copy the blogs array before sorting so we don't mutate React Query's cached array directly! */}
             {[...blogs].sort((a, b) => b.likes - a.likes).map(blog =>
               <Blog key={blog.id} blog={blog} handleDelete={() => handleDelete(blog)} user={user} />
             )}
