@@ -19,12 +19,12 @@ let books = [
   { title: 'The Idiot', published: 1869, author: 'Fyodor Dostoevsky', id: "afa5de04-344d-11e9-a414-719c6709cf3e", genres: ['classic', 'fantasy'] },
 ]
 
-// typeDefs: Defines WHAT data can be fetched (The Schema)
 const typeDefs = `
   type Author {
     name: String!
     born: Int
     id: ID!
+    bookCount: Int! # <--- ADDED for 8.5
   }
 
   type Book {
@@ -38,21 +38,71 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount: Int!
-    allBooks: [Book!]!
+    # ADDED parameters for 8.4
+    allBooks(author: String, genre: String): [Book!]! 
     allAuthors: [Author!]!
   }
-`
+    type Mutation {
+    addBook(
+      title: String!
+      author: String!
+      published: Int!
+      genres: [String!]!
+    ): Book
 
-// resolvers: Defines HOW to get that data
+    editAuthor(
+      name: String!
+      setBornTo: Int!
+    ): Author
+  }
+`
 const resolvers = {
   Query: {
     bookCount: () => books.length,
     authorCount: () => authors.length,
-    allBooks: () => books,
-    allAuthors: () => authors
+    allAuthors: () => authors,
+    allBooks: (root, args) => {
+      let filteredBooks = books
+      if (args.author) {
+        filteredBooks = filteredBooks.filter(b => b.author === args.author)
+      }
+      if (args.genre) {
+        filteredBooks = filteredBooks.filter(b => b.genres.includes(args.genre))
+      }
+      return filteredBooks
+    }
+  }, // <--- This closes the Query block
+
+  Mutation: { // <--- Mutation is now at the same level as Query
+    addBook: (root, args) => {
+      const book = { ...args, id: Math.random().toString(36).substring(2) }
+      books = books.concat(book)
+
+      if (!authors.find(a => a.name === args.author)) {
+        const newAuthor = { name: args.author, id: Math.random().toString(36).substring(2) }
+        authors = authors.concat(newAuthor)
+      }
+
+      return book
+    },
+    editAuthor: (root, args) => {
+      const author = authors.find(a => a.name === args.name)
+      if (!author) {
+        return null
+      }
+
+      const updatedAuthor = { ...author, born: args.setBornTo }
+      authors = authors.map(a => a.name === args.name ? updatedAuthor : a)
+      return updatedAuthor
+    }
+  }, // <--- This closes the Mutation block
+
+  Author: {
+    bookCount: (root) => {
+      return books.filter(b => b.author === root.name).length
+    }
   }
 }
-
 const server = new ApolloServer({
   typeDefs,
   resolvers,
