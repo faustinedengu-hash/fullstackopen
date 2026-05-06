@@ -33,10 +33,12 @@ const remove = async (id) => {
   const response = await axios.delete(`${baseUrl}/${id}`, config)
   return response.data
 }
+// ... existing code (getAll, create, update, etc.)
+
 const addComment = async (id, comment) => {
   const response = await axios.post(`${baseUrl}/${id}/comments`, { comment })
   return response.data
 }
 
-// Make sure your export at the very bottom looks like this:
+// Add addComment to the exported object at the bottom
 export default { getAll, create, update, remove, setToken, addComment }

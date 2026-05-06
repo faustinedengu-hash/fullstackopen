@@ -1,7 +1,8 @@
-const blogsRouter = require('express').Router()
+const blogsRouter = require('express').Router() // <-- THIS MUST BE AT THE TOP
 const Blog = require('../models/blog')
 const User = require('../models/user')
 
+// 1. GET all blogs
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog
     .find({})
@@ -9,6 +10,7 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
+// 2. POST a new blog
 blogsRouter.post('/', async (request, response, next) => {
   try {
     const body = request.body
@@ -37,6 +39,7 @@ blogsRouter.post('/', async (request, response, next) => {
   }
 })
 
+// 3. DELETE a blog
 blogsRouter.delete('/:id', async (request, response, next) => {
   try {
     const user = request.user
@@ -49,7 +52,6 @@ blogsRouter.delete('/:id', async (request, response, next) => {
       return response.status(404).json({ error: 'blog not found' })
     }
 
-    // Ownership check for Exercise 5.21
     if (blog.user.toString() !== user._id.toString()) {
       return response.status(401).json({ error: 'only the creator can delete this blog' })
     }
@@ -61,6 +63,7 @@ blogsRouter.delete('/:id', async (request, response, next) => {
   }
 })
 
+// 4. UPDATE (Likes)
 blogsRouter.put('/:id', async (request, response, next) => {
   const body = request.body
   const blog = { likes: body.likes }
@@ -74,24 +77,30 @@ blogsRouter.put('/:id', async (request, response, next) => {
   }
 })
 
-blogsRouter.post('/:id/comments', async (request, response) => {
-  const { comment } = request.body
+// 5. NEW: Add a comment (Exercise 7.18)
+blogsRouter.post('/:id/comments', async (request, response, next) => {
+  try {
+    const { comment } = request.body
 
-  if (!comment) {
-    return response.status(400).json({ error: 'comment is missing' })
+    if (!comment) {
+      return response.status(400).json({ error: 'comment is missing' })
+    }
+
+    const blog = await Blog.findById(request.params.id)
+    
+    if (!blog) {
+      return response.status(404).json({ error: 'blog not found' })
+    }
+
+    blog.comments = blog.comments ? blog.comments.concat(comment) : [comment]
+    
+    const updatedBlog = await blog.save()
+    const populatedBlog = await updatedBlog.populate('user', { username: 1, name: 1 })
+    
+    response.status(201).json(populatedBlog)
+  } catch (exception) {
+    next(exception)
   }
-
-  const blog = await Blog.findById(request.params.id)
-  
-  if (!blog) {
-    return response.status(404).json({ error: 'blog not found' })
-  }
-
-  blog.comments = blog.comments ? blog.comments.concat(comment) : [comment]
-  
-  const updatedBlog = await blog.save()
-  
-  response.status(201).json(updatedBlog)
 })
 
 module.exports = blogsRouter

@@ -9,7 +9,7 @@ const blogSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  comments: [String] // This is the only new line we added
+  comments: [String] // This allows the database to store the list
 })
 
 blogSchema.set('toJSON', {
