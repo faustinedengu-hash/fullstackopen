@@ -1,3 +1,4 @@
+const { GraphQLError } = require('graphql')
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
 const mongoose = require('mongoose')
@@ -95,21 +96,27 @@ const resolvers = {
 
   Mutation: {
     addBook: async (root, args) => {
-      // 1. Check if author already exists in the database
       let author = await Author.findOne({ name: args.author })
       
-      // 2. If not, create and save the new author first
-      if (!author) {
-        author = new Author({ name: args.author })
-        await author.save()
+      try {
+        if (!author) {
+          author = new Author({ name: args.author })
+          await author.save()
+        }
+        
+        const book = new Book({ ...args, author: author._id })
+        await book.save()
+        
+        return book.populate('author')
+      } catch (error) {
+        throw new GraphQLError('Saving book failed', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args.title,
+            error
+          }
+        })
       }
-      
-      // 3. Create the book and link it to the author's database ID
-      const book = new Book({ ...args, author: author._id })
-      await book.save()
-      
-      // 4. Return the book with the author details populated
-      return book.populate('author')
     },
 
     editAuthor: async (root, args) => {
@@ -117,19 +124,37 @@ const resolvers = {
       if (!author) return null
 
       author.born = args.setBornTo
-      await author.save()
-      return author
+      
+      try {
+        await author.save()
+        return author
+      } catch (error) {
+        throw new GraphQLError('Editing author failed', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args.name,
+            error
+          }
+        })
+      }
     }
   }
-}
+} // <--- THIS WAS THE MISSING BRACKET!
+
+// Make sure you still have const cors = require('cors') at the very top of your file!
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 })
 
-// Update the startup to handle CORS
+// Startup with CORS put back in
 startStandaloneServer(server, {
   listen: { port: 4000 },
+  cors: {
+    origin: ['http://localhost:5173'], 
+    credentials: true
+  }
 }).then(({ url }) => {
   console.log(`Server ready at ${url}`)
 })
