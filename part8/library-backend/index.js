@@ -2,6 +2,9 @@ const { GraphQLError } = require('graphql')
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
 const mongoose = require('mongoose')
+const User = require('./models/user')
+const jwt = require('jsonwebtoken')
+const cors = require('cors') // <-- Brought CORS back!
 require('dotenv').config()
 
 const Author = require('./models/author')
@@ -19,7 +22,6 @@ mongoose.connect(MONGODB_URI)
     console.log('error connection to MongoDB:', error.message)
   })
 
-// We will keep your typeDefs the same for now
 const typeDefs = `
   type Author {
     name: String!
@@ -31,9 +33,19 @@ const typeDefs = `
   type Book {
     title: String!
     published: Int!
-    author: Author! # Change: We want the full Author object now
+    author: Author!
     id: ID!
     genres: [String!]!
+  }
+
+  type User {
+    username: String!
+    favoriteGenre: String!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
   }
 
   type Query {
@@ -41,6 +53,7 @@ const typeDefs = `
     authorCount: Int!
     allBooks(author: String, genre: String): [Book!]! 
     allAuthors: [Author!]!
+    me: User 
   }
 
   type Mutation {
@@ -54,10 +67,17 @@ const typeDefs = `
       name: String!
       setBornTo: Int!
     ): Author
+    createUser(
+      username: String!
+      favoriteGenre: String!
+    ): User
+    login(
+      username: String!
+      password: String!
+    ): Token
   }
 `
 
-// Next, we will rewrite the resolvers to use the Database...
 const resolvers = {
   Query: {
     bookCount: async () => Book.collection.countDocuments(),
@@ -70,25 +90,26 @@ const resolvers = {
     allBooks: async (root, args) => {
       let query = {}
       
-      // If a genre is provided, filter by it
       if (args.genre) {
         query.genres = { $in: [args.genre] }
       }
       
-      // If an author name is provided, find their ID first
       if (args.author) {
         const author = await Author.findOne({ name: args.author })
-        if (!author) return [] // If author doesn't exist, they have no books
+        if (!author) return [] 
         query.author = author._id
       }
       
-      // .populate('author') replaces the author ID with the full Author object
       return Book.find(query).populate('author')
+    },
+
+    // The 'me' query is now safely in its own space
+    me: (root, args, context) => {
+      return context.currentUser
     }
   },
 
   Author: {
-    // Calculates how many books an author has in the database
     bookCount: async (root) => {
       return Book.countDocuments({ author: root._id })
     }
@@ -137,23 +158,69 @@ const resolvers = {
           }
         })
       }
+    },
+
+    // Added createUser Mutation
+    createUser: async (root, args) => {
+      const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre })
+  
+      return user.save()
+        .catch(error => {
+          throw new GraphQLError('Creating the user failed', {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              invalidArgs: args.username,
+              error
+            }
+          })
+        })
+    },
+
+    // Added login Mutation
+    login: async (root, args) => {
+      const user = await User.findOne({ username: args.username })
+  
+      if ( !user || args.password !== 'secret' ) {
+        throw new GraphQLError('wrong credentials', {
+          extensions: { code: 'BAD_USER_INPUT' }
+        })
+      }
+  
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      }
+  
+      return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
     }
   }
-} // <--- THIS WAS THE MISSING BRACKET!
-
-// Make sure you still have const cors = require('cors') at the very top of your file!
+}
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 })
 
-// Startup with CORS put back in
 startStandaloneServer(server, {
   listen: { port: 4000 },
   cors: {
     origin: ['http://localhost:5173'], 
     credentials: true
+  },
+  // ADD THIS CONTEXT BLOCK: The "Bouncer"
+  context: async ({ req }) => {
+    const auth = req ? req.headers.authorization : null
+    
+    // ADD THIS LOG: Let's see what the backend is receiving!
+    console.log('BOUNCER SEES HEADER:', auth) 
+
+    if (auth && auth.startsWith('Bearer ')) {
+      const decodedToken = jwt.verify(
+        auth.substring(7), process.env.JWT_SECRET
+      )
+      const currentUser = await User.findById(decodedToken.id)
+      return { currentUser }
+    }
   }
 }).then(({ url }) => {
   console.log(`Server ready at ${url}`)
