@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { ALL_AUTHORS, EDIT_AUTHOR } from '../queries'
 
@@ -8,10 +8,18 @@ const Authors = (props) => {
 
   const result = useQuery(ALL_AUTHORS)
   
-  // The mutation hook
   const [ editAuthor ] = useMutation(EDIT_AUTHOR, {
     refetchQueries: [ { query: ALL_AUTHORS } ]
   })
+
+  // This useEffect ensures that the 'name' state isn't empty 
+  // when the component first loads with data
+ useEffect(() => {
+    // Only set the name if allAuthors actually exists AND has at least one item
+    if (result.data && result.data.allAuthors && result.data.allAuthors.length > 0) {
+      setName(result.data.allAuthors[0].name)
+    }
+  }, [result.data])
 
   if (!props.show) return null
 
@@ -26,7 +34,6 @@ const Authors = (props) => {
 
     editAuthor({ variables: { name, setBornTo: parseInt(born) } })
 
-    setName('')
     setBorn('')
   }
 
@@ -54,10 +61,13 @@ const Authors = (props) => {
       <form onSubmit={submit}>
         <div>
           name
-          <input
-            value={name}
-            onChange={({ target }) => setName(target.value)}
-          />
+          <select value={name} onChange={({ target }) => setName(target.value)}>
+            {authors.map(a => (
+              <option key={a.name} value={a.name}>
+                {a.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           born

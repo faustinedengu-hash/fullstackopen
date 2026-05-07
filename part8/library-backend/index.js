@@ -1,36 +1,36 @@
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
+const mongoose = require('mongoose')
+require('dotenv').config()
 
-let authors = [
-  { name: 'Robert Martin', id: "afa51ab0-344d-11e9-a414-719c6709cf3e", born: 1952 },
-  { name: 'Martin Fowler', id: "afa51bb0-344d-11e9-a414-719c6709cf3e", born: 1963 },
-  { name: 'Fyodor Dostoevsky', id: "afa51cc0-344d-11e9-a414-719c6709cf3e", born: 1821 },
-  { name: 'Joshua Kerievsky', id: "afa51de0-344d-11e9-a414-719c6709cf3e" },
-  { name: 'Sandi Metz', id: "afa51ff0-344d-11e9-a414-719c6709cf3e" },
-]
+const Author = require('./models/author')
+const Book = require('./models/book')
 
-let books = [
-  { title: 'Clean Code', published: 2008, author: 'Robert Martin', id: "afa5b6f0-344d-11e9-a414-719c6709cf3e", genres: ['refactoring'] },
-  { title: 'Agile software development', published: 2002, author: 'Robert Martin', id: "afa5b6f1-344d-11e9-a414-719c6709cf3e", genres: ['agile', 'patterns', 'design'] },
-  { title: 'Refactoring, edition 2', published: 2018, author: 'Martin Fowler', id: "afa5de00-344d-11e9-a414-719c6709cf3e", genres: ['refactoring'] },
-  { title: 'Refactoring to patterns', published: 2004, author: 'Joshua Kerievsky', id: "afa5de01-344d-11e9-a414-719c6709cf3e", genres: ['refactoring', 'patterns'] },  
-  { title: 'Practical Object-Oriented Design in Ruby', published: 2012, author: 'Sandi Metz', id: "afa5de02-344d-11e9-a414-719c6709cf3e", genres: ['design', 'patterns'] },
-  { title: 'Crime and Punishment', published: 1866, author: 'Fyodor Dostoevsky', id: "afa5de03-344d-11e9-a414-719c6709cf3e", genres: ['classic', 'crime'] },
-  { title: 'The Idiot', published: 1869, author: 'Fyodor Dostoevsky', id: "afa5de04-344d-11e9-a414-719c6709cf3e", genres: ['classic', 'fantasy'] },
-]
+const MONGODB_URI = process.env.MONGODB_URI
 
+console.log('connecting to', MONGODB_URI)
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('error connection to MongoDB:', error.message)
+  })
+
+// We will keep your typeDefs the same for now
 const typeDefs = `
   type Author {
     name: String!
     born: Int
     id: ID!
-    bookCount: Int! # <--- ADDED for 8.5
+    bookCount: Int!
   }
 
   type Book {
     title: String!
     published: Int!
-    author: String!
+    author: Author! # Change: We want the full Author object now
     id: ID!
     genres: [String!]!
   }
@@ -38,68 +38,87 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount: Int!
-    # ADDED parameters for 8.4
     allBooks(author: String, genre: String): [Book!]! 
     allAuthors: [Author!]!
   }
-    type Mutation {
+
+  type Mutation {
     addBook(
       title: String!
       author: String!
       published: Int!
       genres: [String!]!
     ): Book
-
     editAuthor(
       name: String!
       setBornTo: Int!
     ): Author
   }
 `
+
+// Next, we will rewrite the resolvers to use the Database...
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
-    allAuthors: () => authors,
-    allBooks: (root, args) => {
-      let filteredBooks = books
-      if (args.author) {
-        filteredBooks = filteredBooks.filter(b => b.author === args.author)
-      }
-      if (args.genre) {
-        filteredBooks = filteredBooks.filter(b => b.genres.includes(args.genre))
-      }
-      return filteredBooks
-    }
-  }, // <--- This closes the Query block
-
-  Mutation: { // <--- Mutation is now at the same level as Query
-    addBook: (root, args) => {
-      const book = { ...args, id: Math.random().toString(36).substring(2) }
-      books = books.concat(book)
-
-      if (!authors.find(a => a.name === args.author)) {
-        const newAuthor = { name: args.author, id: Math.random().toString(36).substring(2) }
-        authors = authors.concat(newAuthor)
-      }
-
-      return book
+    bookCount: async () => Book.collection.countDocuments(),
+    authorCount: async () => Author.collection.countDocuments(),
+    
+    allAuthors: async () => {
+      return Author.find({})
     },
-    editAuthor: (root, args) => {
-      const author = authors.find(a => a.name === args.name)
-      if (!author) {
-        return null
+    
+    allBooks: async (root, args) => {
+      let query = {}
+      
+      // If a genre is provided, filter by it
+      if (args.genre) {
+        query.genres = { $in: [args.genre] }
       }
-
-      const updatedAuthor = { ...author, born: args.setBornTo }
-      authors = authors.map(a => a.name === args.name ? updatedAuthor : a)
-      return updatedAuthor
+      
+      // If an author name is provided, find their ID first
+      if (args.author) {
+        const author = await Author.findOne({ name: args.author })
+        if (!author) return [] // If author doesn't exist, they have no books
+        query.author = author._id
+      }
+      
+      // .populate('author') replaces the author ID with the full Author object
+      return Book.find(query).populate('author')
     }
-  }, // <--- This closes the Mutation block
+  },
 
   Author: {
-    bookCount: (root) => {
-      return books.filter(b => b.author === root.name).length
+    // Calculates how many books an author has in the database
+    bookCount: async (root) => {
+      return Book.countDocuments({ author: root._id })
+    }
+  },
+
+  Mutation: {
+    addBook: async (root, args) => {
+      // 1. Check if author already exists in the database
+      let author = await Author.findOne({ name: args.author })
+      
+      // 2. If not, create and save the new author first
+      if (!author) {
+        author = new Author({ name: args.author })
+        await author.save()
+      }
+      
+      // 3. Create the book and link it to the author's database ID
+      const book = new Book({ ...args, author: author._id })
+      await book.save()
+      
+      // 4. Return the book with the author details populated
+      return book.populate('author')
+    },
+
+    editAuthor: async (root, args) => {
+      const author = await Author.findOne({ name: args.name })
+      if (!author) return null
+
+      author.born = args.setBornTo
+      await author.save()
+      return author
     }
   }
 }
@@ -108,6 +127,7 @@ const server = new ApolloServer({
   resolvers,
 })
 
+// Update the startup to handle CORS
 startStandaloneServer(server, {
   listen: { port: 4000 },
 }).then(({ url }) => {
