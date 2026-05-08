@@ -10,7 +10,39 @@ const NewBook = (props) => {
   const [genres, setGenres] = useState([])
 
   const [createBook] = useMutation(CREATE_BOOK, {
-    refetchQueries: [ { query: ALL_BOOKS }, { query: ALL_AUTHORS } ],
+    // We can still let it automatically refetch authors, as that query has no variables
+    refetchQueries: [ { query: ALL_AUTHORS } ], 
+    
+    // The update callback fires as soon as the mutation returns a successful response
+    update: (cache, response) => {
+      const addedBook = response.data.addBook
+
+      // Helper function to safely update the cache for a specific set of variables
+      const updateCacheForQuery = (variables) => {
+        cache.updateQuery({ query: ALL_BOOKS, variables }, (data) => {
+          // If this specific query hasn't been fetched yet, skip it
+          if (!data) return null 
+          
+          // Prevent duplicates just in case
+          if (data.allBooks.some(b => b.title === addedBook.title)) {
+            return data
+          }
+
+          // Return the old books PLUS the newly added book
+          return {
+            allBooks: data.allBooks.concat(addedBook)
+          }
+        })
+      }
+
+      // 1. Update the main "all genres" cache (where genre is null)
+      updateCacheForQuery({ genre: null })
+
+      // 2. Update the cache for every specific genre the newly added book belongs to
+      addedBook.genres.forEach(g => {
+        updateCacheForQuery({ genre: g })
+      })
+    },
     onError: (error) => {
       console.error('Error creating book:', error)
     }
