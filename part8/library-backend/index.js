@@ -116,7 +116,16 @@ const resolvers = {
   },
 
   Mutation: {
-    addBook: async (root, args) => {
+    addBook: async (root, args, context) => { // Added context here
+      const currentUser = context.currentUser
+
+      // Security check: if the bouncer didn't find a user, block the save
+      if (!currentUser) {
+        throw new GraphQLError('not authenticated', {
+          extensions: { code: 'BAD_USER_INPUT' }
+        })
+      }
+
       let author = await Author.findOne({ name: args.author })
       
       try {
@@ -139,7 +148,6 @@ const resolvers = {
         })
       }
     },
-
     editAuthor: async (root, args) => {
       const author = await Author.findOne({ name: args.name })
       if (!author) return null
@@ -195,7 +203,6 @@ const resolvers = {
     }
   }
 }
-
 const server = new ApolloServer({
   typeDefs,
   resolvers,
