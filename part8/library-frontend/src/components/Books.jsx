@@ -1,11 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client/react'
 import { ALL_BOOKS } from '../queries'
 
 const Books = (props) => {
-  // 1. Add state to track the currently selected filter
   const [filter, setFilter] = useState('all')
-  const result = useQuery(ALL_BOOKS)
+  const [genres, setGenres] = useState([]) // New state to hold our buttons safely
+
+  // Pass the filter to the query. If 'all', pass null so the backend returns everything.
+  const result = useQuery(ALL_BOOKS, {
+    variables: { genre: filter === 'all' ? null : filter }
+  })
+
+  // Capture all unique genres on the initial load so our buttons don't disappear!
+  useEffect(() => {
+    if (result.data && filter === 'all') {
+      const allGenres = [...new Set(result.data.allBooks.flatMap(b => b.genres))]
+      setGenres(allGenres)
+    }
+  }, [result.data, filter])
 
   if (!props.show) return null
 
@@ -13,23 +25,13 @@ const Books = (props) => {
     return <div>loading...</div>
   }
 
+  // We no longer need 'booksToShow' because the backend did the filtering for us!
   const books = result.data.allBooks
-
-  // 2. Extract all unique genres from the books
-  // flatMap combines all genre arrays into one big array, 
-  // and Set removes the duplicates!
-  const genres = [...new Set(books.flatMap(b => b.genres))]
-
-  // 3. Decide which books to show based on the filter state
-  const booksToShow = filter === 'all' 
-    ? books 
-    : books.filter(b => b.genres.includes(filter))
 
   return (
     <div>
       <h2>books</h2>
       
-      {/* Optional: Show the user what they are filtering by */}
       {filter !== 'all' && (
         <p>in genre <strong>{filter}</strong></p>
       )}
@@ -41,8 +43,8 @@ const Books = (props) => {
             <th>author</th>
             <th>published</th>
           </tr>
-          {/* We now map over 'booksToShow' instead of 'books' */}
-          {booksToShow.map((a) => (
+          {/* We map directly over 'books' now */}
+          {books.map((a) => (
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author.name}</td>
@@ -52,8 +54,8 @@ const Books = (props) => {
         </tbody>
       </table>
 
-      {/* 4. Render the buttons for filtering */}
       <div>
+        {/* We map over our safely stored 'genres' state */}
         {genres.map(g => (
           <button key={g} onClick={() => setFilter(g)}>
             {g}
