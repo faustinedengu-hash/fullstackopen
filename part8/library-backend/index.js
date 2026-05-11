@@ -1,14 +1,26 @@
 const { GraphQLError } = require('graphql')
 const { ApolloServer } = require('@apollo/server')
-const { startStandaloneServer } = require('@apollo/server/standalone')
+const { expressMiddleware } = require('@apollo/server/express4')
+const { ApolloServerPluginDrainHttpServer } = require('@apollo/server/plugin/drainHttpServer')
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+const express = require('express')
+const cors = require('cors')
+const http = require('http')
+
+const { WebSocketServer } = require('ws')
+const { useServer } = require('graphql-ws/lib/use/ws')
+const { PubSub } = require('graphql-subscriptions')
+
 const mongoose = require('mongoose')
-const User = require('./models/user')
 const jwt = require('jsonwebtoken')
-const cors = require('cors') // <-- Brought CORS back!
 require('dotenv').config()
 
+const User = require('./models/user')
 const Author = require('./models/author')
 const Book = require('./models/book')
+
+// Create the PubSub instance
+const pubsub = new PubSub()
 
 const MONGODB_URI = process.env.MONGODB_URI
 
@@ -76,6 +88,10 @@ const typeDefs = `
       password: String!
     ): Token
   }
+
+  type Subscription {
+    bookAdded: Book!
+  }
 `
 
 const resolvers = {
@@ -103,7 +119,6 @@ const resolvers = {
       return Book.find(query).populate('author')
     },
 
-    // The 'me' query is now safely in its own space
     me: (root, args, context) => {
       return context.currentUser
     }
@@ -116,10 +131,9 @@ const resolvers = {
   },
 
   Mutation: {
-    addBook: async (root, args, context) => { // Added context here
+    addBook: async (root, args, context) => {
       const currentUser = context.currentUser
 
-      // Security check: if the bouncer didn't find a user, block the save
       if (!currentUser) {
         throw new GraphQLError('not authenticated', {
           extensions: { code: 'BAD_USER_INPUT' }
@@ -136,8 +150,12 @@ const resolvers = {
         
         const book = new Book({ ...args, author: author._id })
         await book.save()
+        await book.populate('author')
         
-        return book.populate('author')
+        // Publish the event to all subscribers!
+        pubsub.publish('BOOK_ADDED', { bookAdded: book })
+
+        return book
       } catch (error) {
         throw new GraphQLError('Saving book failed', {
           extensions: {
@@ -168,7 +186,6 @@ const resolvers = {
       }
     },
 
-    // Added createUser Mutation
     createUser: async (root, args) => {
       const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre })
   
@@ -184,7 +201,6 @@ const resolvers = {
         })
     },
 
-    // Added login Mutation
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username })
   
@@ -201,34 +217,71 @@ const resolvers = {
   
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
     }
-  }
-}
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-})
-
-startStandaloneServer(server, {
-  listen: { port: 4000 },
-  cors: {
-    origin: ['http://localhost:5173'], 
-    credentials: true
   },
-  // ADD THIS CONTEXT BLOCK: The "Bouncer"
-  context: async ({ req }) => {
-    const auth = req ? req.headers.authorization : null
-    
-    // ADD THIS LOG: Let's see what the backend is receiving!
-    console.log('BOUNCER SEES HEADER:', auth) 
-
-    if (auth && auth.startsWith('Bearer ')) {
-      const decodedToken = jwt.verify(
-        auth.substring(7), process.env.JWT_SECRET
-      )
-      const currentUser = await User.findById(decodedToken.id)
-      return { currentUser }
+  
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator('BOOK_ADDED')
     }
   }
-}).then(({ url }) => {
-  console.log(`Server ready at ${url}`)
+}
+
+// -----------------------------
+// SERVER SETUP WITH EXPRESS & WEBSOCKETS
+// -----------------------------
+const schema = makeExecutableSchema({ typeDefs, resolvers })
+
+const app = express()
+const httpServer = http.createServer(app)
+
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: '/',
 })
+
+const serverCleanup = useServer({ schema }, wsServer)
+
+const server = new ApolloServer({
+  schema,
+  plugins: [
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+    {
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            await serverCleanup.dispose()
+          },
+        }
+      },
+    },
+  ],
+})
+
+const start = async () => {
+  await server.start()
+
+  app.use(
+    '/',
+    cors(),
+    express.json(),
+    expressMiddleware(server, {
+      context: async ({ req }) => {
+        const auth = req ? req.headers.authorization : null
+        if (auth && auth.startsWith('Bearer ')) {
+          const decodedToken = jwt.verify(
+            auth.substring(7), process.env.JWT_SECRET
+          )
+          const currentUser = await User.findById(decodedToken.id)
+          return { currentUser }
+        }
+      },
+    })
+  )
+
+  const PORT = 4000
+  httpServer.listen(PORT, () =>
+    console.log(`Server is now running on http://localhost:${PORT}`)
+  )
+}
+
+start()
