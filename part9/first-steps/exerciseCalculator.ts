@@ -1,3 +1,31 @@
+interface ExerciseValues {
+  target: number;
+  dailyHours: number[];
+}
+
+const parseArguments = (args: string[]): ExerciseValues => {
+  if (args.length < 4) throw new Error('Not enough arguments');
+
+  const target = Number(args[2]);
+  if (isNaN(target)) {
+    throw new Error('Provided values were not numbers!');
+  }
+
+  // Slice from index 3 to the end to get all daily hours, and convert them to numbers
+  const dailyHours = args.slice(3).map(arg => {
+    const num = Number(arg);
+    if (isNaN(num)) {
+      throw new Error('Provided values were not numbers!');
+    }
+    return num;
+  });
+
+  return {
+    target,
+    dailyHours
+  };
+};
+
 interface Result {
   periodLength: number;
   trainingDays: number;
@@ -37,5 +65,13 @@ const calculateExercises = (dailyHours: number[], target: number): Result => {
   };
 };
 
-// Hardcoded call as requested by Exercise 9.2
-console.log(calculateExercises([3, 0, 2, 4.5, 0, 3, 1], 2));
+try {
+  const { target, dailyHours } = parseArguments(process.argv);
+  console.log(calculateExercises(dailyHours, target));
+} catch (error: unknown) {
+  let errorMessage = 'Something bad happened.';
+  if (error instanceof Error) {
+    errorMessage += ' Error: ' + error.message;
+  }
+  console.log(errorMessage);
+}
