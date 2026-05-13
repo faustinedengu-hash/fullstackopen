@@ -1,5 +1,5 @@
 import patientData from '../../data/patients.json';
-import { Patient, NonSensitivePatient, NewPatient } from '../types';
+import { Patient, NonSensitivePatient, NewPatient, Gender } from '../types';
 import { v1 as uuid } from 'uuid';
 
 const patients: Patient[] = patientData as Patient[];
@@ -9,12 +9,12 @@ const getNonSensitiveEntries = (): NonSensitivePatient[] => {
     id,
     name,
     dateOfBirth,
-    gender,
+    gender: gender as Gender, // Explicitly cast to our Enum
     occupation
   }));
 };
 
-const addPatient = ( entry: NewPatient ): Patient => {
+const addPatient = (entry: NewPatient): Patient => {
   const newPatientEntry = {
     id: uuid(),
     ...entry
