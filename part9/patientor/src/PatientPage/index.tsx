@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { Icon, Segment } from "semantic-ui-react";
 import { apiBaseUrl } from "../constants";
 import { useStateValue } from "../state";
-import { Patient, Entry } from "../types";
+import { Patient, Entry, Diagnosis } from "../types";
 
 const assertNever = (value: never): never => {
   throw new Error(
@@ -12,7 +12,22 @@ const assertNever = (value: never): never => {
   );
 };
 
-const EntryDetails = ({ entry }: { entry: Entry }) => {
+// Helper component to display diagnosis codes and names
+const DiagnosisList = ({ codes, diagnoses }: { codes?: Array<Diagnosis['code']>, diagnoses: { [code: string]: Diagnosis } }) => {
+  if (!codes || codes.length === 0) return null;
+
+  return (
+    <ul>
+      {codes.map(code => (
+        <li key={code}>
+          {code} {diagnoses[code] ? diagnoses[code].name : null}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+const EntryDetails = ({ entry, diagnoses }: { entry: Entry, diagnoses: { [code: string]: Diagnosis } }) => {
   switch (entry.type) {
     case "Hospital":
       return (
@@ -23,6 +38,7 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
           <p>
             <i>{entry.description}</i>
           </p>
+          <DiagnosisList codes={entry.diagnosisCodes} diagnoses={diagnoses} />
           <p>
             Discharge: {entry.discharge.date} - {entry.discharge.criteria}
           </p>
@@ -38,6 +54,7 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
           <p>
             <i>{entry.description}</i>
           </p>
+          <DiagnosisList codes={entry.diagnosisCodes} diagnoses={diagnoses} />
           <p>Diagnosed by {entry.specialist}</p>
         </Segment>
       );
@@ -50,6 +67,7 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
           <p>
             <i>{entry.description}</i>
           </p>
+          <DiagnosisList codes={entry.diagnosisCodes} diagnoses={diagnoses} />
           <p>Health check rating: {entry.healthCheckRating}</p>
           <p>Diagnosed by {entry.specialist}</p>
         </Segment>
@@ -60,14 +78,14 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
 };
 
 const PatientPage = () => {
-  const [{ patients }, dispatch] = useStateValue();
+  // Pull diagnoses out of state here
+  const [{ patients, diagnoses }, dispatch] = useStateValue();
   const { id } = useParams<{ id: string }>();
 
   const patient = Object.values(patients).find((p) => p.id === id);
 
   React.useEffect(() => {
     const fetchPatient = async () => {
-      // FIX: Fetch if we don't have the patient AT ALL, or if we are missing their SSN
       if (id && (!patient || !patient.ssn)) {
         try {
           const { data: patientDetails } = await axios.get<Patient>(
@@ -100,12 +118,11 @@ const PatientPage = () => {
       <p>occupation: {patient.occupation}</p>
 
       <h3>entries</h3>
-      {/* FIX: Add a safeguard in case patient.entries is completely undefined */}
       {!patient.entries || patient.entries.length === 0 ? (
         <p>No entries found for this patient.</p>
       ) : (
         patient.entries.map((entry) => (
-          <EntryDetails key={entry.id} entry={entry} />
+          <EntryDetails key={entry.id} entry={entry} diagnoses={diagnoses} />
         ))
       )}
     </div>

@@ -1,5 +1,5 @@
 import { State } from "./state";
-import { Patient } from "../types";
+import { Patient, Diagnosis } from "../types"; // Added Diagnosis here
 
 export type Action =
   | {
@@ -13,6 +13,10 @@ export type Action =
   | {
       type: "UPDATE_PATIENT";
       payload: Patient;
+    }
+  | {
+      type: "SET_DIAGNOSIS_LIST"; // New Action
+      payload: Diagnosis[];
     };
 
 export const reducer = (state: State, action: Action): State => {
@@ -30,13 +34,22 @@ export const reducer = (state: State, action: Action): State => {
       };
     case "ADD_PATIENT":
     case "UPDATE_PATIENT":
-      // Both adding a new patient and updating an existing one do the exact same thing
-      // in the dictionary: they set or overwrite the key-value pair!
       return {
         ...state,
         patients: {
           ...state.patients,
           [action.payload.id]: action.payload
+        }
+      };
+    case "SET_DIAGNOSIS_LIST": // New Case
+      return {
+        ...state,
+        diagnoses: {
+          ...action.payload.reduce(
+            (memo, diagnosis) => ({ ...memo, [diagnosis.code]: diagnosis }),
+            {}
+          ),
+          ...state.diagnoses
         }
       };
     default:
