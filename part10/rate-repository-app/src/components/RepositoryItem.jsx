@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet, Image } from 'react-native';
+import theme from '../theme';
 
 const styles = StyleSheet.create({
   container: {
     padding: 15,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.white,
   },
   topContainer: {
     flexDirection: 'row',
@@ -20,22 +21,22 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   nameText: {
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: theme.fontWeights.bold,
+    fontSize: theme.fontSizes.subheading,
     marginBottom: 2,
   },
   descriptionText: {
-    color: '#586069',
+    color: theme.colors.textSecondary,
   },
   languageContainer: {
-    backgroundColor: '#0366d6',
+    backgroundColor: theme.colors.primary,
     alignSelf: 'flex-start',
     borderRadius: 4,
     padding: 4,
     marginTop: 5,
   },
   languageText: {
-    color: 'white',
+    color: theme.colors.white,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontWeight: 'bold',
+    fontWeight: theme.fontWeights.bold,
     marginBottom: 3,
   },
 });
@@ -53,7 +54,6 @@ const styles = StyleSheet.create({
 const RepositoryItem = ({ item }) => {
   return (
     <View style={styles.container}>
-      {/* Top Section: Avatar and Header Info */}
       <View style={styles.topContainer}>
         <Image source={{ uri: item.ownerAvatarUrl }} style={styles.avatar} />
         <View style={styles.contentContainer}>
@@ -65,21 +65,20 @@ const RepositoryItem = ({ item }) => {
         </View>
       </View>
 
-      {/* Bottom Section: Stats Row */}
       <View style={styles.statsContainer}>
-        <View style={statItemStyle(styles)}>
+        <View style={styles.statItem}>
           <Text style={styles.statValue}>{item.stargazersCount}</Text>
           <Text>Stars</Text>
         </View>
-        <View style={statItemStyle(styles)}>
+        <View style={styles.statItem}>
           <Text style={styles.statValue}>{item.forksCount}</Text>
           <Text>Forks</Text>
         </View>
-        <View style={statItemStyle(styles)}>
+        <View style={styles.statItem}>
           <Text style={styles.statValue}>{item.reviewCount}</Text>
           <Text>Reviews</Text>
         </View>
-        <View style={statItemStyle(styles)}>
+        <View style={styles.statItem}>
           <Text style={styles.statValue}>{item.ratingAverage}</Text>
           <Text>Rating</Text>
         </View>
@@ -87,8 +86,5 @@ const RepositoryItem = ({ item }) => {
     </View>
   );
 };
-
-// Helper to keep the stat items consistent
-const statItemStyle = (styles) => styles.statItem;
 
 export default RepositoryItem;

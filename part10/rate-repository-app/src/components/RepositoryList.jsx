@@ -1,13 +1,15 @@
 import { FlatList, View, StyleSheet } from 'react-native';
 import RepositoryItem from './RepositoryItem';
+import theme from '../theme';
 
 const styles = StyleSheet.create({
   separator: {
     height: 10,
-    backgroundColor: '#e1e4e8', // Light grey so we can see the gaps
+    backgroundColor: theme.colors.mainBackground,
   },
 });
 
+// ... (repositories array stays the same)
 const repositories = [
   {
     id: 'jaredpalmer.formik',
