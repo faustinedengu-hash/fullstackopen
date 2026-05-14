@@ -1,8 +1,8 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import 'semantic-ui-css/semantic.min.css';
+import ReactDOM from 'react-dom';
 import App from './App';
-import { reducer, StateProvider } from "./state";
+import { reducer, StateProvider } from './state';
 
 ReactDOM.render(
   <StateProvider reducer={reducer}>
