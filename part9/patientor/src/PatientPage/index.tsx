@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react"; // Added useState
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { Icon, Segment } from "semantic-ui-react";
+import { Icon, Segment, Button } from "semantic-ui-react"; // Added Button
 import { apiBaseUrl } from "../constants";
 import { useStateValue } from "../state";
-import { Patient, Entry, Diagnosis } from "../types";
+import { Patient, Entry, Diagnosis, EntryWithoutId } from "../types";
+import AddEntryForm from "./AddEntryForm"; // Import the form
 
 const assertNever = (value: never): never => {
   throw new Error(
@@ -12,10 +13,8 @@ const assertNever = (value: never): never => {
   );
 };
 
-// Helper component to display diagnosis codes and names
 const DiagnosisList = ({ codes, diagnoses }: { codes?: Array<Diagnosis['code']>, diagnoses: { [code: string]: Diagnosis } }) => {
   if (!codes || codes.length === 0) return null;
-
   return (
     <ul>
       {codes.map(code => (
@@ -32,28 +31,18 @@ const EntryDetails = ({ entry, diagnoses }: { entry: Entry, diagnoses: { [code: 
     case "Hospital":
       return (
         <Segment>
-          <h3>
-            {entry.date} <Icon name="hospital" />
-          </h3>
-          <p>
-            <i>{entry.description}</i>
-          </p>
+          <h3>{entry.date} <Icon name="hospital" /></h3>
+          <p><i>{entry.description}</i></p>
           <DiagnosisList codes={entry.diagnosisCodes} diagnoses={diagnoses} />
-          <p>
-            Discharge: {entry.discharge.date} - {entry.discharge.criteria}
-          </p>
+          <p>Discharge: {entry.discharge.date} - {entry.discharge.criteria}</p>
           <p>Diagnosed by {entry.specialist}</p>
         </Segment>
       );
     case "OccupationalHealthcare":
       return (
         <Segment>
-          <h3>
-            {entry.date} <Icon name="stethoscope" /> {entry.employerName}
-          </h3>
-          <p>
-            <i>{entry.description}</i>
-          </p>
+          <h3>{entry.date} <Icon name="stethoscope" /> {entry.employerName}</h3>
+          <p><i>{entry.description}</i></p>
           <DiagnosisList codes={entry.diagnosisCodes} diagnoses={diagnoses} />
           <p>Diagnosed by {entry.specialist}</p>
         </Segment>
@@ -61,12 +50,8 @@ const EntryDetails = ({ entry, diagnoses }: { entry: Entry, diagnoses: { [code: 
     case "HealthCheck":
       return (
         <Segment>
-          <h3>
-            {entry.date} <Icon name="user md" />
-          </h3>
-          <p>
-            <i>{entry.description}</i>
-          </p>
+          <h3>{entry.date} <Icon name="user md" /></h3>
+          <p><i>{entry.description}</i></p>
           <DiagnosisList codes={entry.diagnosisCodes} diagnoses={diagnoses} />
           <p>Health check rating: {entry.healthCheckRating}</p>
           <p>Diagnosed by {entry.specialist}</p>
@@ -78,9 +63,9 @@ const EntryDetails = ({ entry, diagnoses }: { entry: Entry, diagnoses: { [code: 
 };
 
 const PatientPage = () => {
-  // Pull diagnoses out of state here
   const [{ patients, diagnoses }, dispatch] = useStateValue();
   const { id } = useParams<{ id: string }>();
+  const [showForm, setShowForm] = useState(false); // State for toggling form
 
   const patient = Object.values(patients).find((p) => p.id === id);
 
@@ -100,22 +85,37 @@ const PatientPage = () => {
     void fetchPatient();
   }, [id, patient, dispatch]);
 
+  const submitNewEntry = async (values: EntryWithoutId) => {
+    try {
+      const { data: updatedPatient } = await axios.post<Patient>(
+        `${apiBaseUrl}/patients/${id}/entries`,
+        values
+      );
+      dispatch({ type: "UPDATE_PATIENT", payload: updatedPatient });
+      setShowForm(false);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        console.error(e.response?.data || "Unrecognized axios error");
+      } else {
+        console.error("Unknown error", e);
+      }
+    }
+  };
   if (!patient) return null;
 
-  const genderIcon =
-    patient.gender === "male"
-      ? "mars"
-      : patient.gender === "female"
-      ? "venus"
-      : "genderless";
+  const genderIcon = patient.gender === "male" ? "mars" : patient.gender === "female" ? "venus" : "genderless";
 
   return (
     <div style={{ marginTop: "2em" }}>
-      <h2>
-        {patient.name} <Icon name={genderIcon} />
-      </h2>
+      <h2>{patient.name} <Icon name={genderIcon} /></h2>
       <p>ssn: {patient.ssn}</p>
       <p>occupation: {patient.occupation}</p>
+
+      {showForm ? (
+        <AddEntryForm onSubmit={submitNewEntry} onCancel={() => setShowForm(false)} />
+      ) : (
+        <Button onClick={() => setShowForm(true)}>Add New Entry</Button>
+      )}
 
       <h3>entries</h3>
       {!patient.entries || patient.entries.length === 0 ? (

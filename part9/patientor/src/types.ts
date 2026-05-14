@@ -52,6 +52,12 @@ export type Entry =
   | OccupationalHealthcareEntry
   | HealthCheckEntry;
 
+// Special helper to omit 'id' from union types
+// This is used for Exercise 9.19 to create a "New Entry"
+type UnionOmit<T, K extends string | number | symbol> = T extends unknown ? Omit<T, K> : never;
+
+export type EntryWithoutId = UnionOmit<Entry, 'id'>;
+
 export interface Patient {
   id: string;
   name: string;
