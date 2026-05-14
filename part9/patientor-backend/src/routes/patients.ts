@@ -34,7 +34,14 @@ router.post('/', (req, res) => {
 
 router.post('/:id/entries', (req, res) => {
   try {
-    // We need to tell the service to add this entry to the specific patient
+    // --- ADDED VALIDATION CHECK ---
+    const { description, date, specialist, type } = req.body;
+    if (!description || !date || !specialist || !type) {
+      throw new Error('Missing required fields (description, date, specialist, or type)');
+    }
+    // ------------------------------
+
+    // If it passes the check, add it to the patient
     const addedEntry = patientService.addEntry(req.params.id, req.body);
     res.json(addedEntry);
   } catch (error: unknown) {

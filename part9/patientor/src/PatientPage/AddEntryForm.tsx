@@ -53,7 +53,7 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
           },
         });
         break;
-      case "OccupationalHealthcare":
+      case "OccupationalHealthcare": { // Added brace here to fix the lint error
         const newEntry: EntryWithoutId = {
           ...baseEntry,
           type: "OccupationalHealthcare",
@@ -65,6 +65,7 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
         }
         onSubmit(newEntry);
         break;
+      } // Added closing brace
     }
   };
 
@@ -73,13 +74,16 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
       <Form onSubmit={addEntry}>
         {/* Dropdown to select Entry Type */}
         <Form.Field>
-          <label>Entry Type</label>
-          <select value={type} onChange={({ target }) => setType(target.value as any)}>
-            <option value="HealthCheck">Health Check</option>
-            <option value="Hospital">Hospital</option>
-            <option value="OccupationalHealthcare">Occupational Healthcare</option>
-          </select>
-        </Form.Field>
+  <label>Entry Type</label>
+  <select 
+    value={type} 
+    onChange={({ target }) => setType(target.value as "HealthCheck" | "Hospital" | "OccupationalHealthcare")}
+  >
+    <option value="HealthCheck">Health Check</option>
+    <option value="Hospital">Hospital</option>
+    <option value="OccupationalHealthcare">Occupational Healthcare</option>
+  </select>
+</Form.Field>
 
         {/* Base Fields (Always visible) */}
         <Form.Field>
@@ -141,7 +145,12 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
             </Button>
           </Grid.Column>
           <Grid.Column floated="right" width={5}>
-            <Button type="submit" floated="right" color="green" disabled={!description || !date || !specialist}>
+            <Button 
+              type="submit" 
+              floated="right" 
+              color="green"
+              /* We removed the disabled line so we can test the error messages! */
+            >
               Add
             </Button>
           </Grid.Column>
