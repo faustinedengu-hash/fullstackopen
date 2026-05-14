@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Grid, Button, Form, Segment } from "semantic-ui-react";
+import { Grid, Button, Form, Segment, Dropdown } from "semantic-ui-react";
 import { HealthCheckRating, EntryWithoutId } from "../types";
+import { useStateValue } from "../state";
 
 interface Props {
   onSubmit: (values: EntryWithoutId) => void;
@@ -8,6 +9,9 @@ interface Props {
 }
 
 const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
+  // Grab the diagnoses from global state
+  const [{ diagnoses }] = useStateValue();
+
   // 1. State for the entry type
   const [type, setType] = useState<"HealthCheck" | "Hospital" | "OccupationalHealthcare">("HealthCheck");
 
@@ -15,6 +19,7 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [specialist, setSpecialist] = useState("");
+  const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]); // NEW: Diagnosis Codes state
 
   // HealthCheck specific
   const [healthCheckRating, setHealthCheckRating] = useState(HealthCheckRating.Healthy);
@@ -28,11 +33,23 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
   const [sickLeaveStart, setSickLeaveStart] = useState("");
   const [sickLeaveEnd, setSickLeaveEnd] = useState("");
 
+  // Format diagnoses for the Semantic UI Dropdown
+  const diagnosisOptions = Object.values(diagnoses).map((d) => ({
+    key: d.code,
+    text: `${d.code} - ${d.name}`,
+    value: d.code,
+  }));
+
   const addEntry = (event: React.SyntheticEvent) => {
     event.preventDefault();
     
-    // The base object every entry needs
-    const baseEntry = { description, date, specialist };
+    // The base object every entry needs (now includes diagnosisCodes)
+    const baseEntry = { 
+      description, 
+      date, 
+      specialist,
+      diagnosisCodes 
+    };
 
     // 2. Build the correct object based on the selected type
     switch (type) {
@@ -53,19 +70,18 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
           },
         });
         break;
-      case "OccupationalHealthcare": { // Added brace here to fix the lint error
+      case "OccupationalHealthcare": { 
         const newEntry: EntryWithoutId = {
           ...baseEntry,
           type: "OccupationalHealthcare",
           employerName,
         };
-        // Sick leave is optional, so we only add it if the user filled it out
         if (sickLeaveStart && sickLeaveEnd) {
           newEntry.sickLeave = { startDate: sickLeaveStart, endDate: sickLeaveEnd };
         }
         onSubmit(newEntry);
         break;
-      } // Added closing brace
+      } 
     }
   };
 
@@ -74,16 +90,16 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
       <Form onSubmit={addEntry}>
         {/* Dropdown to select Entry Type */}
         <Form.Field>
-  <label>Entry Type</label>
-  <select 
-    value={type} 
-    onChange={({ target }) => setType(target.value as "HealthCheck" | "Hospital" | "OccupationalHealthcare")}
-  >
-    <option value="HealthCheck">Health Check</option>
-    <option value="Hospital">Hospital</option>
-    <option value="OccupationalHealthcare">Occupational Healthcare</option>
-  </select>
-</Form.Field>
+          <label>Entry Type</label>
+          <select 
+            value={type} 
+            onChange={({ target }) => setType(target.value as "HealthCheck" | "Hospital" | "OccupationalHealthcare")}
+          >
+            <option value="HealthCheck">Health Check</option>
+            <option value="Hospital">Hospital</option>
+            <option value="OccupationalHealthcare">Occupational Healthcare</option>
+          </select>
+        </Form.Field>
 
         {/* Base Fields (Always visible) */}
         <Form.Field>
@@ -99,8 +115,20 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
           <input placeholder="Specialist" value={specialist} onChange={({ target }) => setSpecialist(target.value)} />
         </Form.Field>
 
+        {/* NEW: Diagnosis Codes Multi-Select */}
+        <Form.Field>
+          <label>Diagnosis Codes</label>
+          <Dropdown
+            fluid
+            multiple
+            search
+            selection
+            options={diagnosisOptions}
+            onChange={(_event, data) => setDiagnosisCodes(data.value as string[])}
+          />
+        </Form.Field>
+
         {/* 3. Conditional Fields based on the selected Type */}
-        
         {type === "HealthCheck" && (
           <Form.Field>
             <label>Health Check Rating (0-3)</label>
@@ -145,12 +173,7 @@ const AddEntryForm = ({ onSubmit, onCancel }: Props) => {
             </Button>
           </Grid.Column>
           <Grid.Column floated="right" width={5}>
-            <Button 
-              type="submit" 
-              floated="right" 
-              color="green"
-              /* We removed the disabled line so we can test the error messages! */
-            >
+            <Button type="submit" floated="right" color="green">
               Add
             </Button>
           </Grid.Column>
