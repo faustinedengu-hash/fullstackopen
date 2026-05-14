@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
+import Text from './Text';
 import theme from '../theme';
 
 const styles = StyleSheet.create({
@@ -20,14 +21,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     gap: 5,
   },
-  nameText: {
-    fontWeight: theme.fontWeights.bold,
-    fontSize: theme.fontSizes.subheading,
-    marginBottom: 2,
-  },
-  descriptionText: {
-    color: theme.colors.textSecondary,
-  },
   languageContainer: {
     backgroundColor: theme.colors.primary,
     alignSelf: 'flex-start',
@@ -35,19 +28,12 @@ const styles = StyleSheet.create({
     padding: 4,
     marginTop: 5,
   },
-  languageText: {
-    color: theme.colors.white,
-  },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
   statItem: {
     alignItems: 'center',
-  },
-  statValue: {
-    fontWeight: theme.fontWeights.bold,
-    marginBottom: 3,
   },
 });
 
@@ -57,30 +43,30 @@ const RepositoryItem = ({ item }) => {
       <View style={styles.topContainer}>
         <Image source={{ uri: item.ownerAvatarUrl }} style={styles.avatar} />
         <View style={styles.contentContainer}>
-          <Text style={styles.nameText}>{item.fullName}</Text>
-          <Text style={styles.descriptionText}>{item.description}</Text>
+          <Text fontWeight="bold" fontSize="subheading">{item.fullName}</Text>
+          <Text color="textSecondary">{item.description}</Text>
           <View style={styles.languageContainer}>
-            <Text style={styles.languageText}>{item.language}</Text>
+            <Text style={{ color: theme.colors.white }}>{item.language}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{item.stargazersCount}</Text>
-          <Text>Stars</Text>
+          <Text fontWeight="bold">{item.stargazersCount}</Text>
+          <Text color="textSecondary">Stars</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{item.forksCount}</Text>
-          <Text>Forks</Text>
+          <Text fontWeight="bold">{item.forksCount}</Text>
+          <Text color="textSecondary">Forks</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{item.reviewCount}</Text>
-          <Text>Reviews</Text>
+          <Text fontWeight="bold">{item.reviewCount}</Text>
+          <Text color="textSecondary">Reviews</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{item.ratingAverage}</Text>
-          <Text>Rating</Text>
+          <Text fontWeight="bold">{item.ratingAverage}</Text>
+          <Text color="textSecondary">Rating</Text>
         </View>
       </View>
     </View>
