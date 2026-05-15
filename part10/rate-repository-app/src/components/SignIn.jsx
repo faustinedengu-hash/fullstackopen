@@ -4,6 +4,7 @@ import * as yup from 'yup';
 import FormikTextInput from './FormikTextInput';
 import Text from './Text';
 import theme from '../theme';
+import useSignIn from '../hooks/useSignIn';
 
 const styles = StyleSheet.create({
   container: {
@@ -28,7 +29,6 @@ const initialValues = {
   password: '',
 };
 
-// 1. Define the validation rules using Yup
 const validationSchema = yup.object().shape({
   username: yup
     .string()
@@ -55,12 +55,22 @@ const SignInForm = ({ onSubmit }) => {
 };
 
 const SignIn = () => {
-  const onSubmit = (values) => {
-    console.log(values);
+  // Bring in the Apollo mutation from our custom hook
+  const [signIn] = useSignIn();
+
+  const onSubmit = async (values) => {
+    const { username, password } = values;
+
+    try {
+      const { data } = await signIn({ username, password });
+      // The exercise asks to log the access token to the console
+      console.log('Successfully logged in! Access Token:', data.authenticate.accessToken);
+    } catch (e) {
+      console.error('Sign in failed:', e.message);
+    }
   };
 
   return (
-    // 2. Pass the schema to Formik
     <Formik 
       initialValues={initialValues} 
       onSubmit={onSubmit}
