@@ -1,7 +1,6 @@
 {
   "name": "rate-repository-app",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
@@ -11,13 +10,16 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@apollo/client": "^4.1.9",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-status-bar": "~3.0.9",
+    "graphql": "^16.14.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-web": "^0.21.0"
+    "react-native-web": "^0.21.0",
+    "react-router-native": "^6.30.3"
   },
   "private": true,
   "devDependencies": {
