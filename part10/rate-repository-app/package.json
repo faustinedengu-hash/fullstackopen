@@ -12,6 +12,7 @@
   "dependencies": {
     "@apollo/client": "^3.8.8",
     "@expo/metro-runtime": "~3.2.3",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "expo": "~51.0.0",
     "expo-constants": "~16.0.2",
     "expo-status-bar": "~1.12.1",
