@@ -5,7 +5,7 @@ import { useQuery } from '@apollo/client';
 import { ME } from '../graphql/queries';
 import Text from './Text';
 import theme from '../theme';
-import useSignOut from '../hooks/useSignOut'; // Import our new hook
+import useSignOut from '../hooks/useSignOut';
 
 const styles = StyleSheet.create({
   container: {
@@ -20,7 +20,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Update the tab to be a Link IF it has a 'to' prop, otherwise be a Pressable button
 const AppBarTab = ({ title, to, onPress }) => {
   if (to) {
     return (
@@ -44,8 +43,6 @@ const AppBarTab = ({ title, to, onPress }) => {
 const AppBar = () => {
   const { data } = useQuery(ME);
   const currentUser = data?.me;
-  
-  // Bring in the sign out function from the hook
   const signOut = useSignOut();
 
   const handleSignOut = async () => {
@@ -56,11 +53,16 @@ const AppBar = () => {
     <View style={styles.container}>
       <ScrollView horizontal contentContainerStyle={styles.scrollView}>
         <AppBarTab title="Repositories" to="/" />
-        {/* Conditionally render Sign In or Sign Out based on the query */}
         {currentUser ? (
-          <AppBarTab title="Sign out" onPress={handleSignOut} />
+          <>
+            <AppBarTab title="Create a review" to="/create-review" />
+            <AppBarTab title="Sign out" onPress={handleSignOut} />
+          </>
         ) : (
-          <AppBarTab title="Sign in" to="/signin" />
+          <>
+            <AppBarTab title="Sign in" to="/signin" />
+            <AppBarTab title="Sign up" to="/signup" />
+          </>
         )}
       </ScrollView>
     </View>
