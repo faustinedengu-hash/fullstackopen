@@ -1,10 +1,11 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import Constants from 'expo-constants';
 import { Link } from 'react-router-native';
 import { useQuery } from '@apollo/client';
 import { ME } from '../graphql/queries';
 import Text from './Text';
 import theme from '../theme';
+import useSignOut from '../hooks/useSignOut'; // Import our new hook
 
 const styles = StyleSheet.create({
   container: {
@@ -19,18 +20,37 @@ const styles = StyleSheet.create({
   },
 });
 
-const AppBarTab = ({ title, to }) => (
-  <Link to={to} style={styles.tabItem}>
-    <Text fontWeight="bold" fontSize="subheading" style={{ color: theme.colors.white }}>
-      {title}
-    </Text>
-  </Link>
-);
+// Update the tab to be a Link IF it has a 'to' prop, otherwise be a Pressable button
+const AppBarTab = ({ title, to, onPress }) => {
+  if (to) {
+    return (
+      <Link to={to} style={styles.tabItem}>
+        <Text fontWeight="bold" fontSize="subheading" style={{ color: theme.colors.white }}>
+          {title}
+        </Text>
+      </Link>
+    );
+  }
+
+  return (
+    <Pressable onPress={onPress} style={styles.tabItem}>
+      <Text fontWeight="bold" fontSize="subheading" style={{ color: theme.colors.white }}>
+        {title}
+      </Text>
+    </Pressable>
+  );
+};
 
 const AppBar = () => {
-  // Execute the ME query to check for a logged-in user
   const { data } = useQuery(ME);
   const currentUser = data?.me;
+  
+  // Bring in the sign out function from the hook
+  const signOut = useSignOut();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <View style={styles.container}>
@@ -38,7 +58,7 @@ const AppBar = () => {
         <AppBarTab title="Repositories" to="/" />
         {/* Conditionally render Sign In or Sign Out based on the query */}
         {currentUser ? (
-          <AppBarTab title="Sign out" to="/" />
+          <AppBarTab title="Sign out" onPress={handleSignOut} />
         ) : (
           <AppBarTab title="Sign in" to="/signin" />
         )}
