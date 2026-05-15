@@ -1,5 +1,6 @@
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Formik } from 'formik';
+import * as yup from 'yup';
 import FormikTextInput from './FormikTextInput';
 import Text from './Text';
 import theme from '../theme';
@@ -27,7 +28,16 @@ const initialValues = {
   password: '',
 };
 
-// We separate the form fields from the Formik wrapper to keep it clean
+// 1. Define the validation rules using Yup
+const validationSchema = yup.object().shape({
+  username: yup
+    .string()
+    .required('Username is required'),
+  password: yup
+    .string()
+    .required('Password is required'),
+});
+
 const SignInForm = ({ onSubmit }) => {
   return (
     <View style={styles.container}>
@@ -45,13 +55,17 @@ const SignInForm = ({ onSubmit }) => {
 };
 
 const SignIn = () => {
-  // This satisfies the 10.8 requirement to log the values
   const onSubmit = (values) => {
     console.log(values);
   };
 
   return (
-    <Formik initialValues={initialValues} onSubmit={onSubmit}>
+    // 2. Pass the schema to Formik
+    <Formik 
+      initialValues={initialValues} 
+      onSubmit={onSubmit}
+      validationSchema={validationSchema}
+    >
       {({ handleSubmit }) => <SignInForm onSubmit={handleSubmit} />}
     </Formik>
   );
