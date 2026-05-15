@@ -19,3 +19,13 @@ export const GET_REPOSITORIES = gql`
     }
   }
 `;
+
+// Add the ME query to check the currently logged-in user
+export const ME = gql`
+  query getCurrentUser {
+    me {
+      id
+      username
+    }
+  }
+`;

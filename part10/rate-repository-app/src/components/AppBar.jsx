@@ -1,6 +1,8 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Constants from 'expo-constants';
 import { Link } from 'react-router-native';
+import { useQuery } from '@apollo/client';
+import { ME } from '../graphql/queries';
 import Text from './Text';
 import theme from '../theme';
 
@@ -26,11 +28,20 @@ const AppBarTab = ({ title, to }) => (
 );
 
 const AppBar = () => {
+  // Execute the ME query to check for a logged-in user
+  const { data } = useQuery(ME);
+  const currentUser = data?.me;
+
   return (
     <View style={styles.container}>
       <ScrollView horizontal contentContainerStyle={styles.scrollView}>
         <AppBarTab title="Repositories" to="/" />
-        <AppBarTab title="Sign in" to="/signin" />
+        {/* Conditionally render Sign In or Sign Out based on the query */}
+        {currentUser ? (
+          <AppBarTab title="Sign out" to="/" />
+        ) : (
+          <AppBarTab title="Sign in" to="/signin" />
+        )}
       </ScrollView>
     </View>
   );
