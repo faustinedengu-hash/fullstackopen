@@ -1,22 +1,20 @@
 import { NativeRouter } from 'react-router-native';
-// We are using the direct react path for Apollo to be safe
-import { ApolloProvider } from '@apollo/client/react'; 
+import { ApolloProvider } from '@apollo/client'; 
 import Main from './src/components/Main';
 import createApolloClient from './src/utils/apolloClient';
 
 const apolloClient = createApolloClient();
 
-const App = () => {
-  // Let's log these one last time to be absolute sure
-  console.log('ApolloProvider is:', ApolloProvider);
-  console.log('NativeRouter is:', NativeRouter);
+// In 2026, if Step 1 is done, this will NO LONGER be undefined.
+console.log("2026 Verification - ApolloProvider:", ApolloProvider);
 
+const App = () => {
   return (
-    <NativeRouter>
-      <ApolloProvider client={apolloClient}>
+    <ApolloProvider client={apolloClient}>
+      <NativeRouter>
         <Main />
-      </ApolloProvider>
-    </NativeRouter>
+      </NativeRouter>
+    </ApolloProvider>
   );
 };
 
