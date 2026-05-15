@@ -37,6 +37,13 @@ const styles = StyleSheet.create({
   },
 });
 
+// Helper function to format the numbers
+const formatCount = (count) => {
+  return count >= 1000 
+    ? `${(Math.round(count / 100) / 10).toFixed(1)}k` 
+    : count;
+};
+
 const RepositoryItem = ({ item }) => {
   return (
     <View style={styles.container}>
@@ -53,19 +60,19 @@ const RepositoryItem = ({ item }) => {
 
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Text fontWeight="bold">{item.stargazersCount}</Text>
+          <Text fontWeight="bold">{formatCount(item.stargazersCount)}</Text>
           <Text color="textSecondary">Stars</Text>
         </View>
         <View style={styles.statItem}>
-          <Text fontWeight="bold">{item.forksCount}</Text>
+          <Text fontWeight="bold">{formatCount(item.forksCount)}</Text>
           <Text color="textSecondary">Forks</Text>
         </View>
         <View style={styles.statItem}>
-          <Text fontWeight="bold">{item.reviewCount}</Text>
+          <Text fontWeight="bold">{formatCount(item.reviewCount)}</Text>
           <Text color="textSecondary">Reviews</Text>
         </View>
         <View style={styles.statItem}>
-          <Text fontWeight="bold">{item.ratingAverage}</Text>
+          <Text fontWeight="bold">{formatCount(item.ratingAverage)}</Text>
           <Text color="textSecondary">Rating</Text>
         </View>
       </View>
