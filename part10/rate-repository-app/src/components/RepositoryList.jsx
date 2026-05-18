@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet, Text as NativeText } from 'react-native';
+import { FlatList, View, StyleSheet, Text as NativeText, TextInput, Pressable } from 'react-native';
 import { useQuery } from '@apollo/client';
 import { Picker } from '@react-native-picker/picker';
+import { useDebounce } from 'use-debounce';
+import { useNavigate } from 'react-router-native'; // <-- Imported useNavigate
 
 import { GET_REPOSITORIES } from '../graphql/queries';
 import RepositoryItem from './RepositoryItem';
@@ -16,18 +18,33 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: theme.colors.mainBackground,
   },
+  searchBar: {
+    backgroundColor: 'white',
+    padding: 10,
+    height: 50,
+    borderRadius: 5,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e1e4e8',
+    fontSize: 16,
+    width: '100%',
+  },
 });
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-// The Picker component that allows sorting
-const RepositoryListHeader = ({ selectedSort, setSelectedSort }) => {
+const RepositoryListHeader = ({ selectedSort, setSelectedSort, searchText, setSearchText }) => {
   return (
     <View style={styles.headerContainer}>
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search repositories..."
+        value={searchText}
+        onChangeText={(text) => setSearchText(text)}
+      />
       <Picker
         selectedValue={selectedSort}
         onValueChange={(itemValue) => setSelectedSort(itemValue)}
-        style={{ backgroundColor: theme.colors.mainBackground }}
       >
         <Picker.Item label="Latest repositories" value="LATEST" />
         <Picker.Item label="Highest rated repositories" value="HIGHEST_RATED" />
@@ -37,8 +54,15 @@ const RepositoryListHeader = ({ selectedSort, setSelectedSort }) => {
   );
 };
 
-// The Container - Keep this pure for your tests!
-export const RepositoryListContainer = ({ repositories, selectedSort, setSelectedSort }) => {
+export const RepositoryListContainer = ({ 
+  repositories, 
+  selectedSort, 
+  setSelectedSort, 
+  searchText, 
+  setSearchText 
+}) => {
+  const navigate = useNavigate(); // <-- Initialize navigation
+
   const repositoryNodes = repositories
     ? repositories.edges.map((edge) => edge.node)
     : [];
@@ -48,11 +72,18 @@ export const RepositoryListContainer = ({ repositories, selectedSort, setSelecte
       data={repositoryNodes}
       ItemSeparatorComponent={ItemSeparator}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <RepositoryItem item={item} />}
+      renderItem={({ item }) => (
+        // <-- Wrapped in Pressable to make the whole card clickable
+        <Pressable onPress={() => navigate(`/repository/${item.id}`)}>
+          <RepositoryItem item={item} />
+        </Pressable>
+      )}
       ListHeaderComponent={
         <RepositoryListHeader 
           selectedSort={selectedSort} 
-          setSelectedSort={setSelectedSort} 
+          setSelectedSort={setSelectedSort}
+          searchText={searchText}
+          setSearchText={setSearchText}
         />
       }
     />
@@ -60,22 +91,23 @@ export const RepositoryListContainer = ({ repositories, selectedSort, setSelecte
 };
 
 const RepositoryList = () => {
-  // 1. State to track the sorting selection
   const [selectedSort, setSelectedSort] = useState('LATEST');
+  const [searchText, setSearchText] = useState('');
 
-  // 2. Determine variables based on selection
+  const [searchKeyword] = useDebounce(searchText, 500);
+
   let variables = {
+    searchKeyword,
     orderBy: 'CREATED_AT',
     orderDirection: 'DESC',
   };
 
   if (selectedSort === 'HIGHEST_RATED') {
-    variables = { orderBy: 'RATING_AVERAGE', orderDirection: 'DESC' };
+    variables = { ...variables, orderBy: 'RATING_AVERAGE', orderDirection: 'DESC' };
   } else if (selectedSort === 'LOWEST_RATED') {
-    variables = { orderBy: 'RATING_AVERAGE', orderDirection: 'ASC' };
+    variables = { ...variables, orderBy: 'RATING_AVERAGE', orderDirection: 'ASC' };
   }
 
-  // 3. Fetch data using the variables
   const { data, loading, error } = useQuery(GET_REPOSITORIES, {
     variables,
     fetchPolicy: 'cache-and-network',
@@ -89,6 +121,8 @@ const RepositoryList = () => {
       repositories={data?.repositories} 
       selectedSort={selectedSort}
       setSelectedSort={setSelectedSort}
+      searchText={searchText}
+      setSearchText={setSearchText}
     />
   );
 };

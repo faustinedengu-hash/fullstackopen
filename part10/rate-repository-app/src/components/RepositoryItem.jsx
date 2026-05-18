@@ -1,4 +1,5 @@
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Pressable } from 'react-native';
+import * as Linking from 'expo-linking'; // Import Linking to open web pages
 import Text from './Text';
 import theme from '../theme';
 
@@ -35,16 +36,35 @@ const styles = StyleSheet.create({
   statItem: {
     alignItems: 'center',
   },
+  githubButton: {
+    backgroundColor: theme.colors.primary,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  githubButtonText: {
+    color: theme.colors.white,
+    fontWeight: theme.fontWeights.bold,
+  },
 });
 
-// Helper function to format the numbers
 const formatCount = (count) => {
   return count >= 1000 
     ? `${(Math.round(count / 100) / 10).toFixed(1)}k` 
     : count;
 };
 
-const RepositoryItem = ({ item }) => {
+// Add the showGitHubButton prop
+const RepositoryItem = ({ item, showGitHubButton }) => {
+  
+  // Helper to trigger the browser
+  const handleOpenGitHub = () => {
+    if (item.url) {
+      Linking.openURL(item.url);
+    }
+  };
+
   return (
     <View testID="repositoryItem" style={styles.container}>
       <View style={styles.topContainer}>
@@ -76,6 +96,13 @@ const RepositoryItem = ({ item }) => {
           <Text color="textSecondary">Rating</Text>
         </View>
       </View>
+
+      {/* Conditionally render the button if the prop is true */}
+      {showGitHubButton && (
+        <Pressable onPress={handleOpenGitHub} style={styles.githubButton}>
+          <Text style={styles.githubButtonText}>Open in GitHub</Text>
+        </Pressable>
+      )}
     </View>
   );
 };
