@@ -35,8 +35,13 @@ const createApolloClient = (authStorage) => {
           ]),
         },
       },
-      // NEW: Tell Apollo to merge reviews inside a specific Repository
       Repository: {
+        fields: {
+          reviews: relayStylePagination(),
+        },
+      },
+      // NEW: Tell Apollo to merge reviews inside the User (me) object
+      User: {
         fields: {
           reviews: relayStylePagination(),
         },
