@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   contentContainer: {
-    flexShrink: 1, // Ensures long review text wraps to the next line
+    flexShrink: 1, 
   },
   username: {
     fontWeight: 'bold',
@@ -47,9 +47,7 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-// 1. The individual review card
 const ReviewItem = ({ review }) => {
-  // Format the date nicely to DD/MM/YYYY
   const formattedDate = new Date(review.createdAt).toLocaleDateString('en-GB');
 
   return (
@@ -66,32 +64,47 @@ const ReviewItem = ({ review }) => {
   );
 };
 
-// 2. The Header Component (Shows the Repo Details)
 const RepositoryInfo = ({ repository }) => {
   return (
     <View style={{ marginBottom: 10 }}>
-      {/* showGitHubButton={true} tells our updated RepositoryItem to show the button! */}
       <RepositoryItem item={repository} showGitHubButton={true} />
     </View>
   );
 };
 
-// 3. The Main Page Component
 const SingleRepository = () => {
-  const { id } = useParams(); // Grabs the ID from the URL string
+  const { id } = useParams(); 
   
-  const { data, loading, error } = useQuery(GET_REPOSITORY, {
-    variables: { id },
+  // 1. Add "first: 5" to the variables and extract fetchMore
+  const { data, loading, error, fetchMore } = useQuery(GET_REPOSITORY, {
+    variables: { id, first: 5 },
     fetchPolicy: 'cache-and-network',
   });
 
-  if (loading) return <Text style={{ padding: 20 }}>Loading repository...</Text>;
+  // 2. Create the function to fetch the next batch of reviews
+  const onEndReach = () => {
+    const canFetchMore = !loading && data?.repository.reviews.pageInfo.hasNextPage;
+
+    if (!canFetchMore) {
+      return;
+    }
+
+    fetchMore({
+      variables: {
+        id,
+        first: 5,
+        after: data.repository.reviews.pageInfo.endCursor,
+      },
+    });
+  };
+
+  // Only show the loading screen if we have NO data to avoid flickering when scrolling
+  if (loading && !data) return <Text style={{ padding: 20 }}>Loading repository...</Text>;
   if (error) return <Text style={{ padding: 20 }}>Error: {error.message}</Text>;
 
   const repository = data?.repository;
   if (!repository) return null;
 
-  // Extract reviews from the edges/node structure
   const reviews = repository.reviews
     ? repository.reviews.edges.map(edge => edge.node)
     : [];
@@ -103,6 +116,9 @@ const SingleRepository = () => {
       renderItem={({ item }) => <ReviewItem review={item} />}
       keyExtractor={({ id }) => id}
       ListHeaderComponent={() => <RepositoryInfo repository={repository} />}
+      // 3. Attach the pagination logic to the list
+      onEndReached={onEndReach}
+      onEndReachedThreshold={0.5}
     />
   );
 };
