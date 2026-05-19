@@ -1,0 +1,29 @@
+name: Deployment pipeline
+
+on:
+  push:
+    branches:
+      - main
+      # Note: If your default branch is 'master', change 'main' to 'master' above
+
+jobs:
+  simple_deployment_pipeline:
+    runs-on: ubuntu-latest
+    
+    # This tells GitHub to run all 'npm' commands inside your part11 folder
+    defaults:
+      run:
+        working-directory: ./part11
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Check style
+        run: npm run eslint
