@@ -1,9 +1,20 @@
 import { gql } from '@apollo/client';
 
-// 1. Query for the main list (with sorting and searching)
 export const GET_REPOSITORIES = gql`
-  query getRepositories($orderBy: AllRepositoriesOrderBy, $orderDirection: OrderDirection, $searchKeyword: String) {
-    repositories(orderBy: $orderBy, orderDirection: $orderDirection, searchKeyword: $searchKeyword) {
+  query getRepositories(
+    $orderBy: AllRepositoriesOrderBy
+    $orderDirection: OrderDirection
+    $searchKeyword: String
+    $first: Int
+    $after: String
+  ) {
+    repositories(
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+      searchKeyword: $searchKeyword
+      first: $first
+      after: $after
+    ) {
       edges {
         node {
           id
@@ -16,12 +27,17 @@ export const GET_REPOSITORIES = gql`
           reviewCount
           ownerAvatarUrl
         }
+        cursor
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
       }
     }
   }
 `;
 
-// 2. Query for the single repository view (with reviews)
 export const GET_REPOSITORY = gql`
   query getRepository($id: ID!) {
     repository(id: $id) {
@@ -53,7 +69,6 @@ export const GET_REPOSITORY = gql`
   }
 `;
 
-// 3. Query for the logged-in user (now including their own reviews!)
 export const ME = gql`
   query getCurrentUser($includeReviews: Boolean = false) {
     me {
