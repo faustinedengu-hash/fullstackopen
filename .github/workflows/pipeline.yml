@@ -26,6 +26,9 @@ jobs:
       - name: Check style
         run: npm run eslint
 
-      # NEW STEP FOR EXERCISE 11.2
+      # NEW STEP FOR EXERCISE 11.3
+      - name: Test
+        run: npm run test
+
       - name: Build
         run: npm run build
