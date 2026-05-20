@@ -41,14 +41,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      # 2026 STANDARD CONDITIONAL: Only execute deployment on direct push/merge events to main
+      # 2026 UNIVERSITY STANDARD: Safely scans commit messages across pushes and PRs
       - name: Deploy to Render
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
         run: curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 
-      # 2026 STANDARD CONDITIONAL: Only bump version tags on direct push/merge events to main
+      # 2026 UNIVERSITY STANDARD: Safely scans commit messages across pushes and PRs
       - name: Bump version and push tag
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
         uses: anothrNick/github-tag-action@1.71.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
