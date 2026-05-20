@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize]
 
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
     
-    # 2026 SECURITY STANDARD: Explicitly allow the token to write tags to repository contents
     permissions:
       contents: write
     
@@ -38,10 +41,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      # 2026 STANDARD CONDITIONAL: Only execute deployment on direct push/merge events to main
       - name: Deploy to Render
+        if: ${{ github.event_name == 'push' }}
         run: curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 
+      # 2026 STANDARD CONDITIONAL: Only bump version tags on direct push/merge events to main
       - name: Bump version and push tag
+        if: ${{ github.event_name == 'push' }}
         uses: anothrNick/github-tag-action@1.71.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
