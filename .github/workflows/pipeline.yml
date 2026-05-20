@@ -9,12 +9,15 @@ jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
     
+    # 2026 SECURITY STANDARD: Explicitly allow the token to write tags to repository contents
+    permissions:
+      contents: write
+    
     defaults:
       run:
         working-directory: ./part11
 
     steps:
-      # We added fetch-depth: '0' so the tagging action can read the commit history
       - uses: actions/checkout@v4
         with:
           fetch-depth: '0'
@@ -38,7 +41,6 @@ jobs:
       - name: Deploy to Render
         run: curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 
-      # NEW STEP FOR EXERCISE 11.7
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.71.0
         env:
