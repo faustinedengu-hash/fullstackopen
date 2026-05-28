@@ -1,0 +1,17 @@
+name: Periodic Health Check
+
+on:
+  schedule:
+    # This cron schedule tells GitHub to run this every 15 minutes
+    - cron: '*/15 * * * *'
+
+jobs:
+  health_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v4
+        with:
+          url: https://pokedex-faustine.onrender.com/health
+          max-attempts: 3
+          retry-delay: 5s
