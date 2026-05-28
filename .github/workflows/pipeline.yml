@@ -45,6 +45,14 @@ jobs:
       - name: Deploy to Render
         if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
         run: curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        
+      - name: Test Success Notification
+        uses: rjstone/discord-webhook-notify@v1
+        if: success()
+        with:
+          severity: info
+          details: Test Passed Successfully!
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
       # 2026 UNIVERSITY STANDARD: Safely scans commit messages across pushes and PRs
       - name: Bump version and push tag
