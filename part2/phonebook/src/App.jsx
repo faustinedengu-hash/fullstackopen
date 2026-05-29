@@ -95,9 +95,8 @@ const App = () => {
             setNewName('')
             setNewNumber('')
           })
-          .catch(error => {
+      .catch(() => {
             setMessageType('error')
-
             setInfoMessage(`Information of ${newName} has already been removed from server`)
             setPersons(persons.filter(p => p.id !== existingPerson.id))
             setTimeout(() => setInfoMessage(null), 5000)
