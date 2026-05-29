@@ -1,0 +1,35 @@
+name: Phonebook Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize]
+
+jobs:
+  phonebook_pipeline:
+    runs-on: ubuntu-latest
+    
+    # This tells GitHub exactly which folder to run the npm commands in!
+    defaults:
+      run:
+        working-directory: ./part2/phonebook
+        
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Check code style (Lint)
+        run: npm run lint
+        
+      - name: Build application
+        run: npm run build
