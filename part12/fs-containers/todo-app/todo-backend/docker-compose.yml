@@ -8,5 +8,15 @@ services:
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
-    # THE SLEDGEHAMMER: Force install before running dev
+    # We inject the connection string directly into the app
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/todo-app
     command: sh -c "npm install && npm run dev"
+
+  # THE NEW DATABASE LAYER
+  mongo:
+    image: mongo
+    container_name: todo-db-container
+    ports:
+      # Maps your host port 3456 to Mongo's internal port 27017
+      - 3456:27017
