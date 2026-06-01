@@ -9,10 +9,7 @@ let visits = 0
 router.get('/', async (req, res) => {
   visits++
 
-  res.send({
-    ...configs,
-    visits
-  });
+  res.send({ message: "hello faustine", visits });
 });
 
 module.exports = router;
