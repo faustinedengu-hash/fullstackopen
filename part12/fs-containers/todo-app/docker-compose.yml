@@ -1,0 +1,45 @@
+services:
+  # THE FRONTEND LAYER (Exercise 12.10)
+ # THE FRONTEND LAYER (Exercise 12.10)
+  frontend:
+    image: todo-frontend
+    build: ./todo-frontend
+    ports:
+      - 5173:5173
+    container_name: todo-frontend-container
+    volumes:
+      - ./todo-frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    # WE INJECT THE BACKEND URL HERE
+    environment:
+      - VITE_BACKEND_URL=http://localhost:3000
+    command: sh -c "npm install && npm run dev -- --host"
+
+  # THE BACKEND LAYER
+  app:
+    image: todo-backend
+    build: ./todo-backend
+    ports:
+      - 3000:3000
+    container_name: todo-backend-container
+    volumes:
+      - ./todo-backend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/todo-app
+      - REDIS_URL=redis://redis:6379
+    command: sh -c "npm install && npm run dev"
+
+  # THE DATABASE LAYER
+  mongo:
+    image: mongo
+    container_name: todo-db-container
+    ports:
+      - 3456:27017
+
+  # THE CACHING LAYER
+  redis:
+    image: redis
+    container_name: todo-redis-container
+    ports:
+      - 6379:6379
