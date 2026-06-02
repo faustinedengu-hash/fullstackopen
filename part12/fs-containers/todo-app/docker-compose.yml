@@ -1,19 +1,12 @@
 services:
-  # THE FRONTEND LAYER (Exercise 12.10)
- # THE FRONTEND LAYER (Exercise 12.10)
+  # THE FRONTEND LAYER (PRODUCTION MODE)
   frontend:
     image: todo-frontend
     build: ./todo-frontend
+    # We map your computer's 5173 to Nginx's internal 80
     ports:
-      - 5173:5173
+      - 5173:80
     container_name: todo-frontend-container
-    volumes:
-      - ./todo-frontend:/usr/src/app
-      - /usr/src/app/node_modules
-    # WE INJECT THE BACKEND URL HERE
-    environment:
-      - VITE_BACKEND_URL=http://localhost:3000
-    command: sh -c "npm install && npm run dev -- --host"
 
   # THE BACKEND LAYER
   app:
@@ -36,10 +29,21 @@ services:
     container_name: todo-db-container
     ports:
       - 3456:27017
+    # PERMANENT STORAGE FOR MONGO
+    volumes:
+      - mongo_data:/data/db
 
-  # THE CACHING LAYER
+  # THE CACHING LAYER (Exercise 12.12)
   redis:
     image: redis
     container_name: todo-redis-container
     ports:
       - 6379:6379
+    # PERMANENT STORAGE FOR REDIS
+    volumes:
+      - redis_data:/data
+
+# WE MUST DECLARE THE VOLUMES AT THE VERY BOTTOM
+volumes:
+  mongo_data:
+  redis_data:
