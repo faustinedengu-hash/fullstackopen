@@ -1,49 +1,49 @@
-services:
-  # THE FRONTEND LAYER (PRODUCTION MODE)
-  frontend:
-    image: todo-frontend
-    build: ./todo-frontend
-    # We map your computer's 5173 to Nginx's internal 80
-    ports:
-      - 5173:80
-    container_name: todo-frontend-container
 
-  # THE BACKEND LAYER
-  app:
-    image: todo-backend
-    build: ./todo-backend
-    ports:
-      - 3000:3000
-    container_name: todo-backend-container
-    volumes:
-      - ./todo-backend:/usr/src/app
-      - /usr/src/app/node_modules
-    environment:
-      - MONGO_URL=mongodb://mongo:27017/todo-app
-      - REDIS_URL=redis://redis:6379
-    command: sh -c "npm install && npm run dev"
+  # THE FRONTEND LAYER (PRODUCTION MODE)
+  frontend:
+    image: todo-frontend
+    build: ./todo-frontend
+    # We map your computer's 5173 to Nginx's internal 80
+    ports:
+      - 5173:80
+    container_name: todo-frontend-container
 
-  # THE DATABASE LAYER
-  mongo:
-    image: mongo
-    container_name: todo-db-container
-    ports:
-      - 3456:27017
-    # PERMANENT STORAGE FOR MONGO
-    volumes:
-      - mongo_data:/data/db
+  # THE BACKEND LAYER
+  app:
+    image: todo-backend
+    build: ./todo-backend
+    ports:
+      - 3000:3000
+    container_name: todo-backend-container
+    volumes:
+      - ./todo-backend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/todo-app
+      - REDIS_URL=redis://redis:6379
+    command: sh -c "npm install && npm run dev"
 
-  # THE CACHING LAYER (Exercise 12.12)
-  redis:
-    image: redis
-    container_name: todo-redis-container
-    ports:
-      - 6379:6379
-    # PERMANENT STORAGE FOR REDIS
-    volumes:
-      - redis_data:/data
+  # THE DATABASE LAYER
+  mongo:
+    image: mongo
+    container_name: todo-db-container
+    ports:
+      - 3456:27017
+    # PERMANENT STORAGE FOR MONGO
+    volumes:
+      - mongo_data:/data/db
+
+  # THE CACHING LAYER (Exercise 12.12)
+  redis:
+    image: redis
+    container_name: todo-redis-container
+    ports:
+      - 6379:6379
+    # PERMANENT STORAGE FOR REDIS
+    volumes:
+      - redis_data:/data
 
 # WE MUST DECLARE THE VOLUMES AT THE VERY BOTTOM
 volumes:
-  mongo_data:
-  redis_data:
+  mongo_data:
+  redis_data:   this is the old one

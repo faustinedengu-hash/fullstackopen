@@ -5,30 +5,31 @@ services:
     build:
       context: ./todo-frontend
       dockerfile: dev.Dockerfile
-    # Vite development server runs on 5173
     ports:
       - 5173:5173
     container_name: todo-frontend-dev-container
-    # We mount the volumes so Vite's hot-reloading works when you save a file!
     volumes:
       - ./todo-frontend:/usr/src/app
       - /usr/src/app/node_modules
 
-  # THE REST OF THE FLEET STAYS EXACTLY THE SAME
+  # THE BACKEND LAYER (DEVELOPMENT MODE)
   app:
-    image: todo-backend
-    build: ./todo-backend
+    image: todo-backend-dev
+    build:
+      context: ./todo-backend
+      dockerfile: dev.Dockerfile
     ports:
       - 3000:3000
-    container_name: todo-backend-container
+    container_name: todo-backend-dev-container
     volumes:
+      # This connects your Windows folder to the container so nodemon can see your saves
       - ./todo-backend:/usr/src/app
       - /usr/src/app/node_modules
     environment:
       - MONGO_URL=mongodb://mongo:27017/todo-app
       - REDIS_URL=redis://redis:6379
-    command: sh -c "npm install && npm run dev"
 
+  # THE DATABASES
   mongo:
     image: mongo
     container_name: todo-db-container
