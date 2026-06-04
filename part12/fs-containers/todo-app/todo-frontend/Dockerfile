@@ -6,7 +6,6 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# We run the tests in CI mode so it doesn't hang waiting for user input
 RUN CI=true npm run test
 
 # ==========================================
@@ -14,9 +13,11 @@ RUN CI=true npm run test
 # ==========================================
 FROM node:20 AS build-stage
 WORKDIR /usr/src/app
-# We only proceed to this stage if the tests passed! We copy the code over.
 COPY --from=test-stage /usr/src/app /usr/src/app
-ENV VITE_BACKEND_URL=http://localhost:3000
+
+# We use a relative URL so it routes perfectly through the Nginx proxy!
+ENV VITE_BACKEND_URL=/api
+
 RUN npm run build
 
 # ==========================================
