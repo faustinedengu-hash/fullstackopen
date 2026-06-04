@@ -22,7 +22,6 @@ services:
       - 3000:3000
     container_name: todo-backend-dev-container
     volumes:
-      # This connects your Windows folder to the container so nodemon can see your saves
       - ./todo-backend:/usr/src/app
       - /usr/src/app/node_modules
     environment:
@@ -45,6 +44,20 @@ services:
       - 6379:6379
     volumes:
       - redis_data:/data
+
+  # THE NGINX PROXY LAYER (Exercise 12.17)
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: todo-nginx-dev-container
+    ports:
+      # Nginx is listening on port 8080 on your Windows machine
+      - 8080:80
+    volumes:
+      # We mount the dev config file we just created
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - app
 
 volumes:
   mongo_data:
