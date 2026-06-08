@@ -21,7 +21,6 @@ router.get('/', async (req, res) => {
   res.json(blogs)
 })
 
-// Exercise 13.12: Route protected by token authentication
 router.post('/', tokenExtractor, async (req, res, next) => {
   try {
     const decodedToken = jwt.verify(req.token, process.env.SECRET || 'secret')
@@ -38,15 +37,28 @@ router.post('/', tokenExtractor, async (req, res, next) => {
   }
 })
 
-router.delete('/:id', async (req, res, next) => {
+// Exercise 13.13: Secure DELETE route checking creator ownership
+router.delete('/:id', tokenExtractor, async (req, res, next) => {
   try {
-    const blog = await Blog.findByPk(req.params.id)
-    if (blog) {
-      await blog.destroy()
-      res.status(204).end()
-    } else {
-      res.status(404).json({ error: 'Blog not found' })
+    const decodedToken = jwt.verify(req.token, process.env.SECRET || 'secret')
+    
+    if (!decodedToken.id) {
+      return res.status(401).json({ error: 'token invalid or missing' })
     }
+
+    const blog = await Blog.findByPk(req.params.id)
+    
+    if (!blog) {
+      return res.status(404).json({ error: 'Blog not found' })
+    }
+
+    // Check if the logged-in user is the creator of the blog
+    if (blog.userId !== decodedToken.id) {
+      return res.status(401).json({ error: 'only the creator can delete this blog' })
+    }
+
+    await blog.destroy()
+    res.status(204).end()
   } catch (error) {
     next(error)
   }
@@ -67,4 +79,4 @@ router.put('/:id', async (req, res, next) => {
   }
 })
 
-module.exports = router // <-- The missing key!
+module.exports = router

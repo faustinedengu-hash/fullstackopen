@@ -60,3 +60,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hd
   "url": "https://overreacted.io/why-lean-code-matters",
   "title": "Why Lean Code Matters"
 }
+### Attempt deleting blog 4 WITHOUT a token (Should return 401 Unauthorized)
+DELETE http://localhost:3001/api/blogs/4
+
+### Delete blog 4 WITH a valid token (Should return 204 No Content)
+DELETE http://localhost:3001/api/blogs/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpQGZzby5jb20iLCJpZCI6MSwiaWF0IjoxNzgwOTI1OTU2fQ.-aVxLS7sblw_8lj3o4XrMCI9etNNQahC2UH70BmHqoA
