@@ -4,12 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Container, TextField, Button, AppBar, Toolbar, 
   Table, TableBody, TableCell, TableContainer, 
-  TableRow, Paper, TableHead
+  TableRow, Paper, TableHead, ThemeProvider, createTheme, CssBaseline
 } from '@mui/material'
 
 import Blog from './components/Blog' 
-import User from './components/User' // <-- NEW IMPORT
-import BlogView from './components/BlogView' // <-- NEW IMPORT
+import User from './components/User'
+import BlogView from './components/BlogView'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
@@ -18,6 +18,13 @@ import BlogForm from './components/BlogForm'
 import Togglable from './components/Togglable'
 import { useNotificationDispatch } from './NotificationContext'
 import { useUserValue, useUserDispatch } from './UserContext'
+
+// Create a dark theme instance for MUI
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+})
 
 const App = () => {
   const [username, setUsername] = useState('') 
@@ -141,74 +148,80 @@ const App = () => {
 
   if (user === null) {
     return (
-      <Container>
-        <h2>Log in to application</h2>
-        <Notification />
-        <form onSubmit={handleLogin}>
-          <div><TextField label="username" value={username} onChange={({ target }) => setUsername(target.value)} margin="normal" /></div>
-          <div><TextField label="password" type="password" value={password} onChange={({ target }) => setPassword(target.value)} margin="normal" /></div>
-          <Button variant="contained" color="primary" type="submit">login</Button>
-        </form>
-      </Container>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline />
+        <Container>
+          <h2>Log in to application</h2>
+          <Notification />
+          <form onSubmit={handleLogin}>
+            <div><TextField label="username" value={username} onChange={({ target }) => setUsername(target.value)} margin="normal" /></div>
+            <div><TextField label="password" type="password" value={password} onChange={({ target }) => setPassword(target.value)} margin="normal" /></div>
+            <Button variant="contained" color="primary" type="submit">login</Button>
+          </form>
+        </Container>
+      </ThemeProvider>
     )
   }
 
   return (
-    <Container>
-      <AppBar position="static">
-        <Toolbar>
-          <Button color="inherit" component={Link} to="/">blogs</Button>
-          <Button color="inherit" component={Link} to="/users">users</Button>
-          <div style={{ marginLeft: 'auto' }}>
-            <em>{user.name} logged in</em>
-            <Button color="inherit" onClick={handleLogout}>logout</Button>
-          </div>
-        </Toolbar>
-      </AppBar>
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <Container>
+        <AppBar position="static">
+          <Toolbar>
+            <Button color="inherit" component={Link} to="/">blogs</Button>
+            <Button color="inherit" component={Link} to="/users">users</Button>
+            <div style={{ marginLeft: 'auto' }}>
+              <em>{user.name} logged in</em>
+              <Button color="inherit" onClick={handleLogout}>logout</Button>
+            </div>
+          </Toolbar>
+        </AppBar>
 
-      <h2>blog app</h2>
-      <Notification />
+        <h2>blog app</h2>
+        <Notification />
 
-      <Routes>
-        <Route path="/" element={
-          <div>
-            <Togglable buttonLabel='new blog'>
-              <BlogForm createBlog={addBlog} />
-            </Togglable>
-            {[...blogs].sort((a, b) => b.likes - a.likes).map(blog =>
-              <Blog key={blog.id} blog={blog} handleDelete={() => handleDelete(blog)} user={user} />
-            )}
-          </div>
-        } />
+        <Routes>
+          <Route path="/" element={
+            <div>
+              <Togglable buttonLabel='new blog'>
+                <BlogForm createBlog={addBlog} />
+              </Togglable>
+              {[...blogs].sort((a, b) => b.likes - a.likes).map(blog =>
+                <Blog key={blog.id} blog={blog} handleDelete={() => handleDelete(blog)} user={user} />
+              )}
+            </div>
+          } />
 
-        <Route path="/users" element={
-          <div>
-            <h2>Users</h2>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell></TableCell>
-                    <TableCell><strong>blogs created</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {users.map(u => (
-                    <TableRow key={u.id}>
-                      <TableCell><Link to={`/users/${u.id}`}>{u.name}</Link></TableCell>
-                      <TableCell>{u.blogs.length}</TableCell>
+          <Route path="/users" element={
+            <div>
+              <h2>Users</h2>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell></TableCell>
+                      <TableCell><strong>blogs created</strong></TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-        } />
+                  </TableHead>
+                  <TableBody>
+                    {users.map(u => (
+                      <TableRow key={u.id}>
+                        <TableCell><Link to={`/users/${u.id}`}>{u.name}</Link></TableCell>
+                        <TableCell>{u.blogs.length}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          } />
 
-        <Route path="/users/:id" element={<User users={users} />} />
-        <Route path="/blogs/:id" element={<BlogView blogs={blogs} handleLike={handleLike} handleComment={handleComment} />} />
-      </Routes>
-    </Container>
+          <Route path="/users/:id" element={<User users={users} />} />
+          <Route path="/blogs/:id" element={<BlogView blogs={blogs} handleLike={handleLike} handleComment={handleComment} />} />
+        </Routes>
+      </Container>
+    </ThemeProvider>
   )
 }
 

@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app-db:
+    image: mongo:7.0
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    volumes:
+      - mongo_data:/data/db
+
+  bloglist-backend:
+    build:
+      context: ./part4
+      dockerfile: Dockerfile.dev
+    environment:
+      - MONGODB_URI=mongodb://root:secret@app-db:27017/bloglistdev?authSource=admin
+      - PORT=3003
+      - SECRET=your_development_jwt_secret_key_here
+    volumes:
+      - ./part4:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - app-db
+
+  bloglist-frontend:
+    build:
+      context: ./part5
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./part5:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - bloglist-backend
+
+  nginx-proxy:
+    image: nginx:1.25-alpine
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - bloglist-frontend
+      - bloglist-backend
+
+volumes:
+  mongo_data:
