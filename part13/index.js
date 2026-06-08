@@ -4,17 +4,19 @@ const app = express()
 const { PORT } = require('./util/config')
 const { connectToDatabase } = require('./util/db')
 const blogsRouter = require('./controllers/blogs')
+const usersRouter = require('./controllers/users')
 
 app.use(express.json())
 
-// Hook up the router
+// Hook up the routers
 app.use('/api/blogs', blogsRouter)
+app.use('/api/users', usersRouter)
 
-// Exercise 13.7: Centralized Error Handling Middleware
+// Centralized Error Handling Middleware
 const errorHandler = (error, req, res, next) => {
   console.error('❌ Error:', error.message)
   
-  if (error.name === 'SequelizeValidationError') {
+  if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
     return res.status(400).json({ error: error.message })
   }
   
