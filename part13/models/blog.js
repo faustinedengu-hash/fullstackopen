@@ -27,7 +27,7 @@ Blog.init({
 }, {
   sequelize,
   underscored: true,
-  timestamps: false,
+  timestamps: true, // <-- Automatically manage created_at and updated_at
   modelName: 'blog'
 })
 

@@ -17,11 +17,11 @@ User.init({
   name: {
     type: DataTypes.STRING,
     allowNull: false
-  },
+  }
 }, {
   sequelize,
   underscored: true,
-  timestamps: false,
+  timestamps: true, // <-- Keeps timestamps synced across tables
   modelName: 'user'
 })
 
