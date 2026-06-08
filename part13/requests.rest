@@ -74,3 +74,5 @@ Content-Type: application/json
   "blogId": 2,
   "userId": 1
 }
+### Get a specific user profile along with their reading list
+GET http://localhost:3001/api/users/1
