@@ -1,0 +1,32 @@
+### Get all blogs
+GET http://localhost:3001/api/blogs
+
+### Create a new blog
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+
+{
+  "author": "Dan Abramov",
+  "url": "https://overreacted.io",
+  "title": "My Decade in Review"
+}
+### Delete a blog (replace '1' with your actual blog ID)
+DELETE http://localhost:3001/api/blogs/1
+
+### 1. Create a new blog (so we have one to update)
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+
+{
+  "author": "Martin Fowler",
+  "url": "https://martinfowler.com",
+  "title": "Continuous Integration"
+}
+
+### 2. Update the likes (Check the ID from the POST response, usually it will be 2)
+PUT http://localhost:3001/api/blogs/2
+Content-Type: application/json
+
+{
+  "likes": 50
+}
