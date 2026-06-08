@@ -1,26 +1,40 @@
 const router = require('express').Router()
-const { Blog, User } = require('../models') // <-- Now importing from the central index.js
+const jwt = require('jsonwebtoken')
+const { Blog, User } = require('../models')
+
+// Helper middleware/function to extract token from headers
+const tokenExtractor = (req, res, next) => {
+  const authorization = req.get('authorization')
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    req.token = authorization.substring(7)
+  }
+  next()
+}
 
 router.get('/', async (req, res) => {
   const blogs = await Blog.findAll({
     include: {
       model: User,
-      attributes: ['name', 'username'] // We only pull the name and username, hiding the user's ID
+      attributes: ['name', 'username']
     }
   })
   res.json(blogs)
 })
 
-router.post('/', async (req, res, next) => {
+// Exercise 13.12: Route protected by token authentication
+router.post('/', tokenExtractor, async (req, res, next) => {
   try {
-    // FSO Temporary Trick: Find the first user in the DB to attach to the new blog
-    const user = await User.findOne()
+    const decodedToken = jwt.verify(req.token, process.env.SECRET || 'secret')
     
-    // Create the blog and attach the user's ID as the foreign key
+    if (!decodedToken.id) {
+      return res.status(401).json({ error: 'token invalid' })
+    }
+
+    const user = await User.findByPk(decodedToken.id)
     const blog = await Blog.create({ ...req.body, userId: user.id })
     res.json(blog)
   } catch (error) {
-    next(error) 
+    next(error)
   }
 })
 
@@ -53,4 +67,4 @@ router.put('/:id', async (req, res, next) => {
   }
 })
 
-module.exports = router
+module.exports = router // <-- The missing key!

@@ -10,26 +10,18 @@ Content-Type: application/json
   "url": "https://overreacted.io",
   "title": "My Decade in Review"
 }
+
 ### Delete a blog (replace '1' with your actual blog ID)
 DELETE http://localhost:3001/api/blogs/1
 
-### 1. Create a new blog (so we have one to update)
-POST http://localhost:3001/api/blogs
-Content-Type: application/json
-
-{
-  "author": "Martin Fowler",
-  "url": "https://martinfowler.com",
-  "title": "Continuous Integration"
-}
-
-### 2. Update the likes (Check the ID from the POST response, usually it will be 2)
+### Update the likes of a blog
 PUT http://localhost:3001/api/blogs/2
 Content-Type: application/json
 
 {
   "likes": 50
 }
+
 ### Create a new user
 POST http://localhost:3001/api/users
 Content-Type: application/json
@@ -38,6 +30,7 @@ Content-Type: application/json
   "username": "mluukkai@fso.com",
   "name": "Matti Luukkainen"
 }
+
 ### Change a username
 PUT http://localhost:3001/api/users/mluukkai@fso.com
 Content-Type: application/json
@@ -45,23 +38,25 @@ Content-Type: application/json
 {
   "username": "matti@fso.com"
 }
-### Create a new blog
-POST http://localhost:3001/api/blogs
-Content-Type: application/json
 
-{
-  "author": "Robert C. Martin",
-  "url": "https://blog.cleancoder.com",
-  "title": "Clean Architecture"
-}
-### Get all blogs
-GET http://localhost:3001/api/blogs
 ### Get all users
 GET http://localhost:3001/api/users
+
 ### Log in to get a token
 POST http://localhost:3001/api/login
 Content-Type: application/json
 
 {
   "username": "matti@fso.com"
+}
+
+### Create a new blog with authentication
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpQGZzby5jb20iLCJpZCI6MSwiaWF0IjoxNzgwOTI1OTU2fQ.-aVxLS7sblw_8lj3o4XrMCI9etNNQahC2UH70BmHqoA
+
+{
+  "author": "Dan Abramov",
+  "url": "https://overreacted.io/why-lean-code-matters",
+  "title": "Why Lean Code Matters"
 }
