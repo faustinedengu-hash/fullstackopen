@@ -15,4 +15,25 @@ router.post('/', async (req, res, next) => {
   }
 })
 
+// Exercise 13.9: Update a username
+router.put('/:username', async (req, res, next) => {
+  try {
+    const user = await User.findOne({ 
+      where: { 
+        username: req.params.username 
+      } 
+    })
+    
+    if (user) {
+      user.username = req.body.username
+      await user.save()
+      res.json(user)
+    } else {
+      res.status(404).json({ error: 'User not found' })
+    }
+  } catch (error) {
+    next(error)
+  }
+})
+
 module.exports = router

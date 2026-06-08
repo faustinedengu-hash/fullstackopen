@@ -38,3 +38,10 @@ Content-Type: application/json
   "username": "mluukkai@fso.com",
   "name": "Matti Luukkainen"
 }
+### Change a username
+PUT http://localhost:3001/api/users/mluukkai@fso.com
+Content-Type: application/json
+
+{
+  "username": "matti@fso.com"
+}
