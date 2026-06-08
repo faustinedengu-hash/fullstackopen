@@ -1,6 +1,7 @@
 const { Sequelize } = require('sequelize')
 const { Umzug, SequelizeStorage } = require('umzug')
 const { DATABASE_URL } = require('./config')
+const path = require('path') // <-- Import the native path utility
 
 const sequelize = new Sequelize(DATABASE_URL, {
   dialectOptions: {
@@ -11,10 +12,11 @@ const sequelize = new Sequelize(DATABASE_URL, {
   },
 })
 
-// Configure the programmatic migration runner
+// Configure the programmatic migration runner with an absolute path
 const migrationConf = {
   migrations: {
-    glob: 'migrations/*.js',
+    // This points explicitly to the migrations folder inside part13
+    glob: path.join(__dirname, '../migrations/*.js'),
   },
   storage: new SequelizeStorage({ sequelize, tableName: 'migrations' }),
   context: sequelize.getQueryInterface(),
@@ -32,7 +34,7 @@ const runMigrations = async () => {
 const connectToDatabase = async () => {
   try {
     await sequelize.authenticate()
-    await runMigrations() // <-- Automatically execute migrations on startup
+    await runMigrations()
     console.log('✅ Connection to PostgreSQL has been established successfully.')
   } catch (err) {
     console.error('❌ Unable to connect to the database:', err)

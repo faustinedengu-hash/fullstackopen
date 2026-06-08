@@ -3,16 +3,20 @@ const app = express()
 
 const { PORT } = require('./util/config')
 const { connectToDatabase } = require('./util/db')
+
+// Import Routers
 const blogsRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
-const loginRouter = require('./controllers/login') // <-- 1. Import login router
+const loginRouter = require('./controllers/login')
+const readingListsRouter = require('./controllers/readinglists') 
 
 app.use(express.json())
 
-// Hook up the routers
+// Hook up Routers
 app.use('/api/blogs', blogsRouter)
 app.use('/api/users', usersRouter)
-app.use('/api/login', loginRouter) // <-- 2. Mount login router
+app.use('/api/login', loginRouter)
+app.use('/api/readinglists', readingListsRouter) 
 
 // Centralized Error Handling Middleware
 const errorHandler = (error, req, res, next) => {
@@ -22,12 +26,10 @@ const errorHandler = (error, req, res, next) => {
     return res.status(400).json({ error: error.message })
   }
   
-  // Handle JWT signature errors cleanly
   if (error.name === 'JsonWebTokenError') {
     return res.status(401).json({ error: 'token invalid or missing' })
   }
   
-  // Default to 500 for unhandled errors
   res.status(500).json({ error: 'Something went wrong' })
 }
 
