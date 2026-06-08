@@ -5,12 +5,14 @@ const { PORT } = require('./util/config')
 const { connectToDatabase } = require('./util/db')
 const blogsRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
+const loginRouter = require('./controllers/login') // <-- 1. Import login router
 
 app.use(express.json())
 
 // Hook up the routers
 app.use('/api/blogs', blogsRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter) // <-- 2. Mount login router
 
 // Centralized Error Handling Middleware
 const errorHandler = (error, req, res, next) => {
@@ -18,6 +20,11 @@ const errorHandler = (error, req, res, next) => {
   
   if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
     return res.status(400).json({ error: error.message })
+  }
+  
+  // Handle JWT signature errors cleanly
+  if (error.name === 'JsonWebTokenError') {
+    return res.status(401).json({ error: 'token invalid or missing' })
   }
   
   // Default to 500 for unhandled errors
