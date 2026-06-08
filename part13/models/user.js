@@ -21,7 +21,7 @@ User.init({
 }, {
   sequelize,
   underscored: true,
-  timestamps: true, // <-- Keeps timestamps synced across tables
+  timestamps: false, // <-- Keeps timestamps synced across tables
   modelName: 'user'
 })
 

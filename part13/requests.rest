@@ -76,3 +76,21 @@ Content-Type: application/json
 }
 ### Get a specific user profile along with their reading list
 GET http://localhost:3001/api/users/1
+### Update reading list status (Mark as Read)
+PUT http://localhost:3001/api/readinglists/1
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJtYXR0aUBmc28uY29tIn0...
+Content-Type: application/json
+
+{
+  "read": true
+}
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpQGZzby5jb20iLCJpZCI6MSwiaWF0IjoxNzgwOTI5ODcyfQ.RKsukZE4e5vn6-0rJjJIwMeK5rJ2zhOgIVI5NS1TJNw",
+  "username": "matti@fso.com",
+  "name": "Matti Luukkainen"
+}
+### Get reading list filtered to show ONLY READ items
+GET http://localhost:3001/api/users/1?read=true
+
+### Get reading list filtered to show ONLY UNREAD items
+GET http://localhost:3001/api/users/1?read=false

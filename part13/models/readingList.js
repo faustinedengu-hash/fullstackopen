@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require('sequelize')
 const { sequelize } = require('../util/db')
+const { SECRET } = require('../util/config')
 
 class ReadingList extends Model {}
 

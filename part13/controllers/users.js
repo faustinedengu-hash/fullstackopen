@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const { User, Blog } = require('../models')
 
-// GET /api/users - Lists all users and their created blogs (One-to-Many)
+// GET /api/users - Lists all users and their created blogs
 router.get('/', async (req, res) => {
   const users = await User.findAll({
     include: {
@@ -12,18 +12,26 @@ router.get('/', async (req, res) => {
   res.json(users)
 })
 
-// Exercise 13.18: GET /api/users/:id - Get specific user profile and their reading list (Many-to-Many)
+// Exercise 13.18 & 13.20: GET /api/users/:id - Get profile with optionally filtered reading list
 router.get('/:id', async (req, res, next) => {
   try {
+    // 1. Check if the 'read' query parameter was provided (?read=true or ?read=false)
+    const whereClause = {}
+    if (req.query.read !== undefined) {
+      // Convert the incoming string 'true' or 'false' into a boolean value
+      whereClause.isRead = req.query.read === 'true'
+    }
+
     const user = await User.findByPk(req.params.id, {
       attributes: { exclude: ['createdAt', 'updatedAt'] },
       include: [
         {
           model: Blog,
-          as: 'readings', // <-- Matches the alias configured in models/index.js
+          as: 'readings',
           attributes: { exclude: ['userId', 'createdAt', 'updatedAt'] },
           through: {
-            attributes: ['isRead', 'id'] // <-- Cleanly shapes the readingList nesting payload
+            attributes: ['isRead', 'id'],
+            where: whereClause // <-- Dynamically applies filtering on the join table!
           }
         }
       ]
