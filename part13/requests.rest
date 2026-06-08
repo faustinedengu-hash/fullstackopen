@@ -45,3 +45,16 @@ Content-Type: application/json
 {
   "username": "matti@fso.com"
 }
+### Create a new blog
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+
+{
+  "author": "Robert C. Martin",
+  "url": "https://blog.cleancoder.com",
+  "title": "Clean Architecture"
+}
+### Get all blogs
+GET http://localhost:3001/api/blogs
+### Get all users
+GET http://localhost:3001/api/users

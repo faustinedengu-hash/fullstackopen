@@ -31,7 +31,4 @@ Blog.init({
   modelName: 'blog'
 })
 
-// Sync the table automatically for now
-Blog.sync()
-
 module.exports = Blog

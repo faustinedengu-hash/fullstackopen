@@ -1,17 +1,26 @@
 const router = require('express').Router()
-const Blog = require('../models/blog')
+const { Blog, User } = require('../models') // <-- Now importing from the central index.js
 
 router.get('/', async (req, res) => {
-  const blogs = await Blog.findAll()
+  const blogs = await Blog.findAll({
+    include: {
+      model: User,
+      attributes: ['name', 'username'] // We only pull the name and username, hiding the user's ID
+    }
+  })
   res.json(blogs)
 })
 
 router.post('/', async (req, res, next) => {
   try {
-    const blog = await Blog.create(req.body)
+    // FSO Temporary Trick: Find the first user in the DB to attach to the new blog
+    const user = await User.findOne()
+    
+    // Create the blog and attach the user's ID as the foreign key
+    const blog = await Blog.create({ ...req.body, userId: user.id })
     res.json(blog)
   } catch (error) {
-    next(error) // Passes the error to our custom middleware
+    next(error) 
   }
 })
 

@@ -25,7 +25,4 @@ User.init({
   modelName: 'user'
 })
 
-// Automatically create the users table if it doesn't exist
-User.sync()
-
 module.exports = User
