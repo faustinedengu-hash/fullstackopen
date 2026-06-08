@@ -23,9 +23,10 @@ const BlogForm = ({ createBlog }) => {
     <Box sx={{ 
       marginBottom: 2, 
       padding: 2, 
-      border: '1px solid #ddd', 
+      border: '1px solid',
+      borderColor: 'divider', // Adapts to light/dark mode automatically
       borderRadius: 2,
-      backgroundColor: '#fcfcfc' 
+      backgroundColor: 'background.paper' // Adapts to light/dark mode automatically
     }}>
       <Typography variant="h6" gutterBottom>create new</Typography>
       <form onSubmit={handleAddBlog}>
@@ -71,7 +72,7 @@ const BlogForm = ({ createBlog }) => {
           type="submit" 
           sx={{ marginTop: 2 }}
         >
-          create
+          CREATE
         </Button>
       </form>
     </Box>
