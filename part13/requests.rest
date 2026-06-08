@@ -60,12 +60,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hd
   "url": "https://overreacted.io/why-lean-code-matters",
   "title": "Why Lean Code Matters"
 }
+
 ### Attempt deleting blog 4 WITHOUT a token (Should return 401 Unauthorized)
 DELETE http://localhost:3001/api/blogs/4
 
 ### Delete blog 4 WITH a valid token (Should return 204 No Content)
 DELETE http://localhost:3001/api/blogs/4
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpQGZzby5jb20iLCJpZCI6MSwiaWF0IjoxNzgwOTI1OTU2fQ.-aVxLS7sblw_8lj3o4XrMCI9etNNQahC2UH70BmHqoA
+
 ### Add a blog to a user's reading list
 POST http://localhost:3001/api/readinglists
 Content-Type: application/json
@@ -74,23 +76,30 @@ Content-Type: application/json
   "blogId": 2,
   "userId": 1
 }
+
 ### Get a specific user profile along with their reading list
 GET http://localhost:3001/api/users/1
+
 ### Update reading list status (Mark as Read)
 PUT http://localhost:3001/api/readinglists/1
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJtYXR0aUBmc28uY29tIn0...
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpQGZzby5jb20iLCJpZCI6MSwiaWF0IjoxNzgwOTI5ODcyfQ.RKsukZE4e5vn6-0rJjJIwMeK5rJ2zhOgIVI5NS1TJNw
 Content-Type: application/json
 
 {
   "read": true
 }
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpQGZzby5jb20iLCJpZCI6MSwiaWF0IjoxNzgwOTI5ODcyfQ.RKsukZE4e5vn6-0rJjJIwMeK5rJ2zhOgIVI5NS1TJNw",
-  "username": "matti@fso.com",
-  "name": "Matti Luukkainen"
-}
+
 ### Get reading list filtered to show ONLY READ items
 GET http://localhost:3001/api/users/1?read=true
 
 ### Get reading list filtered to show ONLY UNREAD items
 GET http://localhost:3001/api/users/1?read=false
+
+### Search blogs by a keyword matching title (e.g., 'Integration')
+GET http://localhost:3001/api/blogs?search=Integration
+
+### Search blogs by a keyword matching author (e.g., 'Martin')
+GET http://localhost:3001/api/blogs?search=Martin
+
+### Search blogs using lowercase matching to verify case-insensitivity (e.g., 'fowler')
+GET http://localhost:3001/api/blogs?search=fowler

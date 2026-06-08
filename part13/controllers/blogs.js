@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const jwt = require('jsonwebtoken')
+const { Op } = require('sequelize') // <-- 1. Import Op from sequelize to handle advanced operators
 const { Blog, User } = require('../models')
 
 // Helper middleware/function to extract token from headers
@@ -11,8 +12,30 @@ const tokenExtractor = (req, res, next) => {
   next()
 }
 
+// Exercise 13.21: GET /api/blogs - Lists all blogs with optional multi-column case-insensitive filtering
 router.get('/', async (req, res) => {
+  let whereClause = {}
+
+  // If a ?search= query parameter exists, build a dynamic SQL OR query
+  if (req.query.search) {
+    whereClause = {
+      [Op.or]: [
+        {
+          title: {
+            [Op.iLike]: `%${req.query.search}%` // Case-insensitive substring match on Title
+          }
+        },
+        {
+          author: {
+            [Op.iLike]: `%${req.query.search}%` // Case-insensitive substring match on Author
+          }
+        }
+      ]
+    }
+  }
+
   const blogs = await Blog.findAll({
+    where: whereClause, // <-- Applies the multi-column search filter dynamically
     include: {
       model: User,
       attributes: ['name', 'username']
@@ -37,7 +60,7 @@ router.post('/', tokenExtractor, async (req, res, next) => {
   }
 })
 
-// Exercise 13.13: Secure DELETE route checking creator ownership
+// Secure DELETE route checking creator ownership
 router.delete('/:id', tokenExtractor, async (req, res, next) => {
   try {
     const decodedToken = jwt.verify(req.token, process.env.SECRET || 'secret')
@@ -52,7 +75,6 @@ router.delete('/:id', tokenExtractor, async (req, res, next) => {
       return res.status(404).json({ error: 'Blog not found' })
     }
 
-    // Check if the logged-in user is the creator of the blog
     if (blog.userId !== decodedToken.id) {
       return res.status(401).json({ error: 'only the creator can delete this blog' })
     }
