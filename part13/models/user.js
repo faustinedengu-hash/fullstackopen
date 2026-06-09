@@ -17,11 +17,16 @@ User.init({
   name: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  disabled: { // <-- NEW: Maps to the new PostgreSQL column
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   sequelize,
   underscored: true,
-  timestamps: true, // <-- Keeps timestamps synced across tables
+  timestamps: true,
   modelName: 'user'
 })
 
