@@ -103,3 +103,17 @@ GET http://localhost:3001/api/blogs?search=Martin
 
 ### Search blogs using lowercase matching to verify case-insensitivity (e.g., 'fowler')
 GET http://localhost:3001/api/blogs?search=fowler
+### Create a blog with active session
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: Bearer <YOUR_TOKEN_HERE>
+
+{
+  "title": "Stateful Sessions are Awesome",
+  "author": "Matti",
+  "url": "https://fso.com/stateful",
+  "likes": 10
+}
+### Destroy the session
+DELETE http://localhost:3001/api/logout
+Authorization: Bearer <YOUR_TOKEN_HERE>

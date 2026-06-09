@@ -8,6 +8,7 @@ const { connectToDatabase } = require('./util/db')
 const blogsRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
+const logoutRouter = require('./controllers/logout') // <-- 1. Import Logout
 const readingListsRouter = require('./controllers/readinglists') 
 
 app.use(express.json())
@@ -16,6 +17,7 @@ app.use(express.json())
 app.use('/api/blogs', blogsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
+app.use('/api/logout', logoutRouter) // <-- 2. Connect Logout
 app.use('/api/readinglists', readingListsRouter) 
 
 // Centralized Error Handling Middleware

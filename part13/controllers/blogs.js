@@ -1,33 +1,26 @@
 const router = require('express').Router()
 const jwt = require('jsonwebtoken')
-const { Op } = require('sequelize') // <-- 1. Import Op from sequelize to handle advanced operators
+const { Op } = require('sequelize')
 const { Blog, User } = require('../models')
 
-// Helper middleware/function to extract token from headers
-const tokenExtractor = (req, res, next) => {
-  const authorization = req.get('authorization')
-  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
-    req.token = authorization.substring(7)
-  }
-  next()
-}
+// NEW: Import the centralized, stateful security middleware
+const { tokenExtractor } = require('../util/middleware')
 
 // Exercise 13.21: GET /api/blogs - Lists all blogs with optional multi-column case-insensitive filtering
 router.get('/', async (req, res) => {
   let whereClause = {}
 
-  // If a ?search= query parameter exists, build a dynamic SQL OR query
   if (req.query.search) {
     whereClause = {
       [Op.or]: [
         {
           title: {
-            [Op.iLike]: `%${req.query.search}%` // Case-insensitive substring match on Title
+            [Op.iLike]: `%${req.query.search}%` 
           }
         },
         {
           author: {
-            [Op.iLike]: `%${req.query.search}%` // Case-insensitive substring match on Author
+            [Op.iLike]: `%${req.query.search}%` 
           }
         }
       ]
@@ -35,7 +28,7 @@ router.get('/', async (req, res) => {
   }
 
   const blogs = await Blog.findAll({
-    where: whereClause, // <-- Applies the multi-column search filter dynamically
+    where: whereClause, 
     include: {
       model: User,
       attributes: ['name', 'username']
