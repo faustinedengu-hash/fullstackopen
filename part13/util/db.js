@@ -1,7 +1,6 @@
 const { Sequelize } = require('sequelize')
 const { Umzug, SequelizeStorage } = require('umzug')
 const { DATABASE_URL } = require('./config')
-const path = require('path') // <-- Import the native path utility
 
 const sequelize = new Sequelize(DATABASE_URL, {
   dialectOptions: {
@@ -12,11 +11,11 @@ const sequelize = new Sequelize(DATABASE_URL, {
   },
 })
 
-// Configure the programmatic migration runner with an absolute path
+// Configure the programmatic migration runner
 const migrationConf = {
   migrations: {
-    // This points explicitly to the migrations folder inside part13
-    glob: path.join(__dirname, '../migrations/*.js'),
+    // FIXED: Using standard forward slashes so Windows doesn't blind the glob radar!
+    glob: 'migrations/*.js',
   },
   storage: new SequelizeStorage({ sequelize, tableName: 'migrations' }),
   context: sequelize.getQueryInterface(),
