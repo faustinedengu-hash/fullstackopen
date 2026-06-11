@@ -1,8 +1,8 @@
+import Link from "next/link" // <-- NEW: Imported native link component
+
 export default async function TopicDetailPage({ params }) {
-  // Unwrapping the dynamic parameters promise
   const { id } = await params
 
-  // Dummy mock data matching our homepage array to simulate database lookup
   const topicsData = {
     "1": { title: "React Server Components", completed: true, details: "Components default to rendering on the server side to minimize client bundles." },
     "2": { title: "Next.js App Router & File Routing", completed: true, details: "Routing is dictated fully by the file system layout using page.js markers." },
@@ -17,6 +17,11 @@ export default async function TopicDetailPage({ params }) {
       <div className="p-8 max-w-xl mx-auto text-center">
         <h1 className="text-2xl font-bold text-red-500">Topic Not Found</h1>
         <p className="text-zinc-400 mt-2">The topic ID #{id} does not exist in the 2026 curriculum.</p>
+        <div className="mt-6">
+          <Link href="/" className="text-sm text-green-400 hover:underline">
+            &larr; Return to Safety
+          </Link>
+        </div>
       </div>
     )
   }
@@ -30,10 +35,22 @@ export default async function TopicDetailPage({ params }) {
           {topic.completed ? 'Completed Module' : 'Planned Module'}
         </span>
       </div>
+      
       <h1 className="text-3xl font-bold mb-4 text-white">{topic.title}</h1>
-      <p className="text-zinc-300 leading-relaxed bg-zinc-900 border border-zinc-800 p-4 rounded">
+      
+      <p className="text-zinc-300 leading-relaxed bg-zinc-900 border border-zinc-800 p-4 rounded mb-6">
         {topic.details}
       </p>
+
+      {/* NEW: Back to Overview Component Navigation Button */}
+      <div className="border-t border-zinc-800 pt-4">
+        <Link 
+          href="/" 
+          className="inline-flex items-center text-sm text-zinc-400 hover:text-white transition-colors gap-2"
+        >
+          <span>&larr;</span> Back to Core Topics Overview
+        </Link>
+      </div>
     </div>
   )
 }
