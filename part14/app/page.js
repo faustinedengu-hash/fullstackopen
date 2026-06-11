@@ -1,3 +1,5 @@
+import Link from "next/link" // <-- NEW: Imported native optimized link helper
+
 export default function Home() {
   const topics = [
     { id: 1, title: "React Server Components", completed: true },
@@ -15,9 +17,16 @@ export default function Home() {
         {topics.map(topic => (
           <li 
             key={topic.id} 
-            className="p-4 rounded bg-zinc-900 border border-zinc-800 flex justify-between items-center"
+            className="p-4 rounded bg-zinc-900 border border-zinc-800 flex justify-between items-center transition-all hover:border-zinc-700"
           >
-            <span className="text-gray-200 font-medium">{topic.title}</span>
+            {/* NEW: Title is now wrapped in a dynamic client-side link element */}
+            <Link 
+              href={`/topics/${topic.id}`} 
+              className="text-gray-200 font-medium hover:text-green-400 hover:underline transition-colors"
+            >
+              {topic.title}
+            </Link>
+            
             <span className={`text-xs px-2 py-1 rounded font-bold ${
               topic.completed ? 'bg-green-950 text-green-400' : 'bg-amber-950 text-amber-400'
             }`}>
