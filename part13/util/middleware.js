@@ -30,4 +30,4 @@ const tokenExtractor = async (req, res, next) => {
   next()
 }
 
-module.exports = { tokenExtractor }
+module.exports = { tokenExtractor}
