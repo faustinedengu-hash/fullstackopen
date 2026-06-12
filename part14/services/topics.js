@@ -20,7 +20,6 @@ export const getSingleTopic = async (id) => {
   return res.json()
 }
 
-// NEW: Send a new topic item directly to our backend database layer
 export const createLiveTopic = async (title) => {
   const res = await fetch("http://localhost:3000/api/topics", {
     method: "POST",
