@@ -1,35 +1,44 @@
 import { NextResponse } from "next/server"
+import { db } from "@/db"                  // Import our initialized Drizzle client
+import { topics } from "@/db/schema"       // Import our PostgreSQL table blueprint
 
-// Kept in global runtime cache memory for Chapter 2
-const coreTopics = [
-  { id: 1, title: "React Server Components", completed: true },
-  { id: 2, title: "Next.js App Router & File Routing", completed: true },
-  { id: 3, title: "Drizzle ORM & Postgres Mappings", completed: false },
-  { id: 4, title: "NextAuth Stateful Session Control", completed: false }
-]
-
+// 1. GET ALL TOPICS FROM LIVE DATABASE
 export async function GET() {
-  return NextResponse.json(coreTopics)
+  try {
+    // SELECT * FROM topics;
+    const allTopics = await db.select().from(topics)
+    return NextResponse.json(allTopics)
+  } catch (error) {
+    // 👇 THIS LINE WILL CATCH AND PRINT THE REAL POSTGRESQL ERROR
+    console.error("🚨 POSTGRESQL CRASH LOG:", error) 
+    
+    return NextResponse.json(
+      { error: "Database read failure. Could not fetch topics records." }, 
+      { status: 500 }
+    )
+  }
 }
 
-// NEW: Accept incoming JSON data payloads to create fresh topic items
+// 2. INSERT A NEW TOPIC INTO LIVE DATABASE
 export async function POST(request) {
   try {
     const body = await request.json()
     
-    if (!body.title) {
+    if (!body.title || body.title.trim() === "") {
       return NextResponse.json({ error: "Title parameter is strictly required" }, { status: 400 })
     }
 
-    const newTopic = {
-      id: coreTopics.length + 1,
-      title: body.title,
+    // INSERT INTO topics (title, completed) VALUES (body.title, false) RETURNING *;
+    const [insertedTopic] = await db.insert(topics).values({
+      title: body.title.trim(),
       completed: false
-    }
+    }).returning() // .returning() fetches the freshly created row with its serial ID back from PG
 
-    coreTopics.push(newTopic)
-    return NextResponse.json(newTopic, { status: 201 })
+    return NextResponse.json(insertedTopic, { status: 201 })
   } catch (error) {
-    return NextResponse.json({ error: "Malformed request payload body" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Database write failure. Could not persist new entry records." }, 
+      { status: 500 }
+    )
   }
 }

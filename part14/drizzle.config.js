@@ -5,6 +5,7 @@ export default defineConfig({
   out: "./db/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/fullstackopen",
+    // 👇 We pasted the URL directly here and removed the channel_binding tag!
+    url: "postgresql://neondb_owner:npg_a5TkYxqgtv8i@ep-dry-fog-ap7a5o5u-pooler.c-7.us-east-1.aws.neon.tech/part14?sslmode=require",
   },
 })
