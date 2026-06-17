@@ -1,46 +1,35 @@
 import Link from "next/link";
 import { getBlogs } from "../services/blogs";
 
-export default function BlogsPage() {
-  const blogs = getBlogs();
+export default async function BlogsPage() {
+  // 1. Get the blogs
+  const blogs = getBlogs(); 
+
+  // 2. Sort them in descending order (highest likes first)
+  // We use [...blogs] to create a copy so we don't accidentally mutate the original array!
+  const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes);
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Blogs</h1>
-        <a 
-          href="/blogs/new" 
-          className="bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-200 transition"
-        >
-          + New Blog
-        </a>
-      </div>
+    <div className="max-w-2xl mx-auto py-12 px-4">
+      <h1 className="text-4xl font-bold mb-8 text-white">Blogs</h1>
       
       <div className="space-y-4">
-        {blogs.map((blog) => (
-          <div 
-            key={blog.id} 
-            className="p-5 border border-zinc-800 bg-zinc-900/50 rounded-xl hover:border-zinc-700 transition-all"
-          >
-            {/* 👇 Notice how the title is now wrapped in a Link! */}
-            <Link href={`/blogs/${blog.id}`}>
-              <h2 className="text-xl font-semibold text-white mb-1 hover:text-blue-400 transition">
-                {blog.title}
-              </h2>
-            </Link>
-            <p className="text-zinc-400 text-sm mb-3">By {blog.author}</p>
-            <div className="flex justify-between items-center text-xs text-zinc-500">
-              <a 
-                href={blog.url} 
-                target="_blank" 
-                rel="noreferrer" 
-                className="text-blue-400 hover:underline"
+        {/* 3. Map over the sorted array instead of the original one! */}
+        {sortedBlogs.map((blog) => (
+          <div key={blog.id} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
+            <h2 className="text-2xl font-bold text-white mb-2">{blog.title}</h2>
+            <p className="text-zinc-400 mb-4">By {blog.author}</p>
+            
+            <div className="flex items-center justify-between">
+              <Link 
+                href={`/blogs/${blog.id}`}
+                className="text-blue-400 hover:text-blue-300 hover:underline transition"
               >
                 Visit Blog →
-              </a>
-              <span className="bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-md">
+              </Link>
+              <div className="bg-zinc-800 px-3 py-1 rounded-full text-sm font-medium text-zinc-300">
                 👍 {blog.likes} likes
-              </span>
+              </div>
             </div>
           </div>
         ))}
