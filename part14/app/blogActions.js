@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { addBlog } from "./services/blogs";
+import { addBlog, incrementLikes } from "./services/blogs";
 
 export const createBlog = async (formData) => {
   // Extract values from the form
@@ -18,4 +18,16 @@ export const createBlog = async (formData) => {
   
   // Redirect the user back to the list
   redirect("/blogs");
+};
+export const likeBlog = async (formData) => {
+  // Extract the ID from the hidden input field
+  const id = formData.get("id");
+  
+  // Update the backend
+  incrementLikes(id);
+  
+  // Revalidate BOTH paths so the new like count shows up instantly
+  // on the individual page AND the main list!
+  revalidatePath(`/blogs/${id}`);
+  revalidatePath("/blogs");
 };

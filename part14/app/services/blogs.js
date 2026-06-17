@@ -41,3 +41,9 @@ export const getBlogById = (id) => {
   // We use String(id) just to be safe, since URL parameters are always strings
   return blogs.find((blog) => blog.id === String(id));
 };
+export const incrementLikes = (id) => {
+  const blog = blogs.find((blog) => blog.id === String(id));
+  if (blog) {
+    blog.likes += 1;
+  }
+};

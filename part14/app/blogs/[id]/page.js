@@ -1,14 +1,12 @@
 import { notFound } from "next/navigation";
 import { getBlogById } from "../../services/blogs";
+import { likeBlog } from "../../blogActions"; // 👈 Import the Server Action
+import Link from "next/link";
 
 export default async function BlogPage({ params }) {
-  // Await the params to get the dynamic ID from the URL
   const { id } = await params;
-  
-  // Fetch the specific blog
   const blog = getBlogById(id);
 
-  // If the user types a random URL like /blogs/999, show a 404 page
   if (!blog) {
     notFound();
   }
@@ -37,19 +35,32 @@ export default async function BlogPage({ params }) {
           <p className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-1">
             Likes
           </p>
-          <p className="text-3xl font-bold text-white">
-            {blog.likes}
-          </p>
+          <div className="flex items-center justify-center gap-6">
+            <p className="text-3xl font-bold text-white">
+              {blog.likes}
+            </p>
+            
+            {/* 👇 The Form with the hidden input field! */}
+            <form action={likeBlog}>
+              <input type="hidden" name="id" value={blog.id} />
+              <button 
+                type="submit" 
+                className="bg-zinc-100 hover:bg-white text-black px-4 py-2 rounded-md font-semibold transition"
+              >
+                👍 Like
+              </button>
+            </form>
+          </div>
         </div>
       </div>
       
       <div className="mt-8">
-        <a 
+        <Link
           href="/blogs" 
           className="text-zinc-400 hover:text-white transition"
         >
           ← Back to all blogs
-        </a>
+        </Link>
       </div>
     </div>
   );
