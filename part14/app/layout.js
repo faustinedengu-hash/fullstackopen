@@ -1,5 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link"; // <-- NEW: Imported optimized client-side link
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +32,10 @@ export default function RootLayout({ children }) {
             </Link>
             <Link href="/about" className="text-zinc-400 hover:text-white transition-colors">
               About
+            </Link>
+            {/* 👇 NEW: Link to the blogs list required by Exercise 1 */}
+            <Link href="/blogs" className="text-zinc-400 hover:text-white transition-colors">
+              Blogs
             </Link>
           </div>
         </nav>
