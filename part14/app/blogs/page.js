@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { getBlogs } from "../services/blogs";
 
 export default function BlogsPage() {
-  // 👇 Fetching data from our new service instead of hardcoding it here
   const blogs = getBlogs();
 
   return (
@@ -22,7 +22,12 @@ export default function BlogsPage() {
             key={blog.id} 
             className="p-5 border border-zinc-800 bg-zinc-900/50 rounded-xl hover:border-zinc-700 transition-all"
           >
-            <h2 className="text-xl font-semibold text-white mb-1">{blog.title}</h2>
+            {/* 👇 Notice how the title is now wrapped in a Link! */}
+            <Link href={`/blogs/${blog.id}`}>
+              <h2 className="text-xl font-semibold text-white mb-1 hover:text-blue-400 transition">
+                {blog.title}
+              </h2>
+            </Link>
             <p className="text-zinc-400 text-sm mb-3">By {blog.author}</p>
             <div className="flex justify-between items-center text-xs text-zinc-500">
               <a 

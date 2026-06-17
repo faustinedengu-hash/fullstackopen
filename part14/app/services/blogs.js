@@ -37,3 +37,7 @@ export const addBlog = (title, author, url) => {
     likes: 0 // New blogs start with 0 likes
   });
 };
+export const getBlogById = (id) => {
+  // We use String(id) just to be safe, since URL parameters are always strings
+  return blogs.find((blog) => blog.id === String(id));
+};
